@@ -4,10 +4,6 @@ const swaggerUi = require("swagger-ui-express");
 const app = express();
 // Add this near the top of app.js if not already there
 const PORT = process.env.PORT || 5000;
-// Middleware
-app.use(express.json());
-app.set("trust proxy", true); // Essential for capturing system IP
-
 const cors = require('cors');
 
 // Place this BEFORE any routes
@@ -17,6 +13,11 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true // Required if you are using cookies or sessions
 }));
+// Middleware
+app.use(express.json());
+app.set("trust proxy", true); // Essential for capturing system IP
+
+
 
 // Handle the preflight request manually just in case
 app.options('{*path}', cors());
