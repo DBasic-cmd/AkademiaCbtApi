@@ -7,6 +7,19 @@ const app = express();
 app.use(express.json());
 app.set("trust proxy", true); // Essential for capturing system IP
 
+const cors = require('cors');
+
+// Place this BEFORE any routes
+app.use(cors({
+  origin: ['http://localhost:8080', 'https://akademiacbtapi.onrender.com'], 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true // Required if you are using cookies or sessions
+}));
+
+// Handle the preflight request manually just in case
+app.options('*', cors());
+
 // Swagger documentation
 const swaggerDocument = {
   openapi: "3.0.0",
