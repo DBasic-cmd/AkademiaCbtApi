@@ -1,4 +1,6 @@
 const User = require("../models/User");
+const Subject = require("../models/Subject");
+const Question = require("../models/Question");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -110,12 +112,13 @@ exports.logout = async (req, res) => {
 };
 exports.changePassword = async (req, res) => {
   try {
-    const { userType, userId, oldPassword, newPassword } = req.body;
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.user.id;
 
-    if (!userType || !userId || !oldPassword || !newPassword) {
+    if (!oldPassword || !newPassword) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required"
+        message: 'oldPassword and newPassword are required'
       });
     }
 
@@ -124,49 +127,35 @@ exports.changePassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: 'User not found'
       });
     }
 
-    // Ensure userType matches
-    if (user.userType !== userType && user.role !== userType) {
-      return res.status(403).json({
-        success: false,
-        message: "Unauthorized operation"
-      });
-    }
-
-    // Check old password
     const isMatch = await bcrypt.compare(oldPassword, user.password);
 
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Old password is incorrect"
+        message: 'Old password is incorrect'
       });
     }
 
-    // Prevent same password reuse (optional but smart)
     const isSamePassword = await bcrypt.compare(newPassword, user.password);
 
     if (isSamePassword) {
       return res.status(400).json({
         success: false,
-        message: "New password must be different from old password"
+        message: 'New password must be different from old password'
       });
     }
 
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 12);
-
-    user.password = hashedPassword;
+    user.password = await bcrypt.hash(newPassword, 12);
     await user.save();
 
     res.status(200).json({
       success: true,
-      message: "Password changed successfully"
+      message: 'Password changed successfully'
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -822,3 +811,377 @@ exports.getCandidateDetailsById = async (req, res) => {
   }
 };
 
+exports.addSubject = async (req, res) => {
+  try {
+    const { name, tenant, shortCode, description } = req.body;
+
+    if (!name || !tenant || !shortCode) {
+      return res.status(400).json({
+        success: false,
+        message: "name, tenant, and shortCode are required"
+      });
+    }
+
+    const existingSubject = await Subject.findOne({
+      $or: [
+        { name: name.trim() },
+        { shortCode: shortCode.trim() }
+      ]
+    });
+
+    if (existingSubject) {
+      return res.status(400).json({
+        success: false,
+        message: "Subject with this name or shortCode already exists"
+      });
+    }
+
+    const subject = new Subject({
+      name: name.trim(),
+      tenant: tenant.trim(),
+      shortCode: shortCode.trim(),
+      description: description ? description.trim() : ""
+    });
+
+    await subject.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Subject added successfully",
+      data: subject
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+};
+exports.editSubject = async (req, res) => {
+  try {
+    const { id, name, description, shortCode } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "id is required"
+      });
+    }
+
+    const subject = await Subject.findById(id);
+
+    if (!subject) {
+      return res.status(404).json({
+        success: false,
+        message: "Subject not found"
+      });
+    }
+
+    // Check duplicates if name or shortCode is being updated
+    if (name || shortCode) {
+      const duplicate = await Subject.findOne({
+        _id: { $ne: id },
+        tenant: subject.tenant,
+        $or: [
+          name ? { name: name.trim() } : null,
+          shortCode ? { shortCode: shortCode.trim() } : null
+        ].filter(Boolean)
+      });
+
+      if (duplicate) {
+        return res.status(400).json({
+          success: false,
+          message: "Another subject with same name or shortCode exists"
+        });
+      }
+    }
+
+    if (name !== undefined) subject.name = name.trim();
+    if (description !== undefined) subject.description = description.trim();
+    if (shortCode !== undefined) subject.shortCode = shortCode.trim();
+
+    await subject.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Subject updated successfully",
+      data: subject
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+};
+exports.getSubjectList = async (req, res) => {
+  try {
+    let { PageNo, PageSize, Tenant, Name } = req.query;
+
+    PageNo = parseInt(PageNo, 10) || 1;
+    PageSize = parseInt(PageSize, 10) || 10;
+
+    if (PageNo < 1 || PageSize < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "PageNo and PageSize must be greater than 0"
+      });
+    }
+
+    const filter = {};
+
+    if (Tenant) {
+      filter.tenant = Tenant.trim();
+    }
+
+    if (Name) {
+      filter.name = { $regex: Name.trim(), $options: 'i' };
+    }
+
+    const totalRecords = await Subject.countDocuments(filter);
+
+    const subjects = await Subject.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((PageNo - 1) * PageSize)
+      .limit(PageSize);
+
+    res.status(200).json({
+      success: true,
+      message: "Subjects fetched successfully",
+      data: subjects,
+      pagination: {
+        pageNo: PageNo,
+        pageSize: PageSize,
+        totalRecords,
+        totalPages: Math.ceil(totalRecords / PageSize)
+      }
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+};
+exports.fetchSubjects = async (req, res) => {
+  try {
+    const subjects = await Subject.find()
+      .select('_id name shortCode tenant')
+      .sort({ name: 1 });
+
+    res.status(200).json({
+      success: true,
+      message: "Subjects fetched successfully",
+      data: subjects
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+};
+exports.deleteSubject = async (req, res) => {
+  try {
+    const { subjectId } = req.query;
+
+    if (!subjectId) {
+      return res.status(400).json({
+        success: false,
+        message: "subjectId is required"
+      });
+    }
+
+    const subject = await Subject.findById(subjectId);
+
+    if (!subject) {
+      return res.status(404).json({
+        success: false,
+        message: "Subject not found"
+      });
+    }
+
+    await Subject.findByIdAndDelete(subjectId);
+
+    res.status(200).json({
+      success: true,
+      message: "Subject deleted successfully"
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+};
+exports.createQuestion = async (req, res) => {
+  try {
+    const {
+      subject,
+      examYear,
+      orderId,
+      ask,
+      option1,
+      option2,
+      option3,
+      option4,
+      answer,
+      score
+    } = req.body;
+
+    // Basic validation
+    if (
+      !subject ||
+      !examYear ||
+      orderId === undefined ||
+      !ask ||
+      !option1 ||
+      !option2 ||
+      !option3 ||
+      !option4 ||
+      !answer ||
+      score === undefined
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required"
+      });
+    }
+
+    // Check subject exists
+    const subjectExists = await Subject.findOne({ name: subject.trim() });
+
+    if (!subjectExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Subject not found"
+      });
+    }
+
+    // Validate answer is one of the options
+    const options = [option1, option2, option3, option4];
+
+    if (!options.includes(answer)) {
+      return res.status(400).json({
+        success: false,
+        message: "Answer must match one of the options"
+      });
+    }
+
+    const question = new Question({
+      subject: subject.trim(),
+      examYear,
+      orderId,
+      ask: ask.trim(),
+      option1: option1.trim(),
+      option2: option2.trim(),
+      option3: option3.trim(),
+      option4: option4.trim(),
+      answer: answer.trim(),
+      score
+    });
+
+    await question.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Question created successfully",
+      data: question
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+};
+exports.updateQuestion = async (req, res) => {
+  try {
+    const {
+      questionId,
+      subject,
+      examYear,
+      orderId,
+      ask,
+      option1,
+      option2,
+      option3,
+      option4,
+      answer,
+      score
+    } = req.body;
+
+    if (!questionId) {
+      return res.status(400).json({
+        success: false,
+        message: "questionId is required"
+      });
+    }
+
+    const question = await Question.findById(questionId);
+
+    if (!question) {
+      return res.status(404).json({
+        success: false,
+        message: "Question not found"
+      });
+    }
+
+    if (subject !== undefined) {
+      const subjectExists = await Subject.findOne({ name: subject.trim() });
+
+      if (!subjectExists) {
+        return res.status(404).json({
+          success: false,
+          message: "Subject not found"
+        });
+      }
+    }
+
+    const finalOption1 = option1 !== undefined ? option1.trim() : question.option1;
+    const finalOption2 = option2 !== undefined ? option2.trim() : question.option2;
+    const finalOption3 = option3 !== undefined ? option3.trim() : question.option3;
+    const finalOption4 = option4 !== undefined ? option4.trim() : question.option4;
+    const finalAnswer = answer !== undefined ? answer.trim() : question.answer;
+
+    const options = [finalOption1, finalOption2, finalOption3, finalOption4];
+
+    if (!options.includes(finalAnswer)) {
+      return res.status(400).json({
+        success: false,
+        message: "Answer must match one of the options"
+      });
+    }
+
+    if (subject !== undefined) question.subject = subject.trim();
+    if (examYear !== undefined) question.examYear = examYear.trim();
+    if (orderId !== undefined) question.orderId = orderId;
+    if (ask !== undefined) question.ask = ask.trim();
+    if (option1 !== undefined) question.option1 = option1.trim();
+    if (option2 !== undefined) question.option2 = option2.trim();
+    if (option3 !== undefined) question.option3 = option3.trim();
+    if (option4 !== undefined) question.option4 = option4.trim();
+    if (answer !== undefined) question.answer = answer.trim();
+    if (score !== undefined) question.score = score;
+
+    await question.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Question updated successfully",
+      data: question
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+};

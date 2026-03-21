@@ -10,6 +10,15 @@ app.set("trust proxy", true); // Essential for capturing system IP
 // Swagger documentation
 const swaggerDocument = {
   openapi: "3.0.0",
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+      },
+    },
+  },
   info: {
     title: "Akademia CBT API",
     version: "1.0.0",
@@ -1270,6 +1279,699 @@ const swaggerDocument = {
         },
       },
     },
+    "/api/Subject/add-subject": {
+      post: {
+        tags: ["Subject"],
+        summary: "Add a new subject",
+        description: "Creates a new subject in the system",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  name: {
+                    type: "string",
+                  },
+                  tenant: {
+                    type: "string",
+                  },
+                  shortCode: {
+                    type: "string",
+                  },
+                  description: {
+                    type: "string",
+                  },
+                },
+                required: ["name", "tenant", "shortCode"],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Subject added successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                    data: {
+                      type: "object",
+                      properties: {
+                        _id: { type: "string" },
+                        name: { type: "string" },
+                        tenant: { type: "string" },
+                        shortCode: { type: "string" },
+                        description: { type: "string" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Validation error or duplicate subject",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Subject/edit-subject": {
+      post: {
+        tags: ["Subject"],
+        summary: "Edit subject",
+        description: "Updates an existing subject",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  id: {
+                    type: "string",
+                  },
+                  name: {
+                    type: "string",
+                  },
+                  description: {
+                    type: "string",
+                  },
+                  shortCode: {
+                    type: "string",
+                  },
+                },
+                required: ["id"],
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Subject updated successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                    data: {
+                      type: "object",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Validation error or duplicate subject",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: "Subject not found",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Subject/subject-list": {
+      get: {
+        tags: ["Subject"],
+        summary: "Get subject list",
+        description:
+          "Fetches a paginated list of subjects with optional filtering by tenant and name",
+        parameters: [
+          {
+            name: "PageNo",
+            in: "query",
+            required: false,
+            schema: {
+              type: "integer",
+              format: "int32",
+            },
+            description: "Page number",
+          },
+          {
+            name: "PageSize",
+            in: "query",
+            required: false,
+            schema: {
+              type: "integer",
+              format: "int32",
+            },
+            description: "Number of records per page",
+          },
+          {
+            name: "Tenant",
+            in: "query",
+            required: false,
+            schema: {
+              type: "string",
+            },
+            description: "Tenant name",
+          },
+          {
+            name: "Name",
+            in: "query",
+            required: false,
+            schema: {
+              type: "string",
+            },
+            description: "Subject name filter",
+          },
+        ],
+        responses: {
+          200: {
+            description: "Subjects fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                    data: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          _id: {
+                            type: "string",
+                          },
+                          name: {
+                            type: "string",
+                          },
+                          tenant: {
+                            type: "string",
+                          },
+                          shortCode: {
+                            type: "string",
+                          },
+                          description: {
+                            type: "string",
+                          },
+                          createdAt: {
+                            type: "string",
+                          },
+                          updatedAt: {
+                            type: "string",
+                          },
+                        },
+                      },
+                    },
+                    pagination: {
+                      type: "object",
+                      properties: {
+                        pageNo: {
+                          type: "integer",
+                        },
+                        pageSize: {
+                          type: "integer",
+                        },
+                        totalRecords: {
+                          type: "integer",
+                        },
+                        totalPages: {
+                          type: "integer",
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Invalid pagination parameters",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Subject/fetch-subject": {
+      get: {
+        tags: ["Subject"],
+        summary: "Fetch all subjects",
+        description: "Retrieves a list of all subjects",
+        responses: {
+          200: {
+            description: "Subjects fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                    data: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          _id: {
+                            type: "string",
+                          },
+                          name: {
+                            type: "string",
+                          },
+                          shortCode: {
+                            type: "string",
+                          },
+                          tenant: {
+                            type: "string",
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Subject/delete-subject": {
+      delete: {
+        tags: ["Subject"],
+        summary: "Delete subject",
+        description:
+          "Deletes a subject using subjectId. Only Admin users can perform this action.",
+        parameters: [
+          {
+            name: "subjectId",
+            in: "query",
+            required: true,
+            schema: {
+              type: "string",
+            },
+            description: "ID of the subject to delete",
+          },
+        ],
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: "Subject deleted successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Missing subjectId",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          403: {
+            description: "Forbidden - Admins only",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: "Subject not found",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Question/new-question": {
+      post: {
+        tags: ["Question"],
+        summary: "Create new question",
+        description:
+          "Creates a new exam question. Only Admin users can perform this action.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  subject: {
+                    type: "string",
+                  },
+                  examYear: {
+                    type: "string",
+                  },
+                  orderId: {
+                    type: "integer",
+                  },
+                  ask: {
+                    type: "string",
+                  },
+                  option1: {
+                    type: "string",
+                  },
+                  option2: {
+                    type: "string",
+                  },
+                  option3: {
+                    type: "string",
+                  },
+                  option4: {
+                    type: "string",
+                  },
+                  answer: {
+                    type: "string",
+                  },
+                  score: {
+                    type: "integer",
+                  },
+                },
+                required: [
+                  "subject",
+                  "examYear",
+                  "orderId",
+                  "ask",
+                  "option1",
+                  "option2",
+                  "option3",
+                  "option4",
+                  "answer",
+                  "score",
+                ],
+              },
+            },
+          },
+        },
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        responses: {
+          201: {
+            description: "Question created successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                    data: {
+                      type: "object",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Validation error",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Unauthorized",
+          },
+          403: {
+            description: "Forbidden - Admins only",
+          },
+          404: {
+            description: "Subject not found",
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Question/update-question": {
+      post: {
+        tags: ["Question"],
+        summary: "Update question",
+        description:
+          "Updates an existing exam question. Only Tutor users can perform this action.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  questionId: {
+                    type: "string",
+                  },
+                  subject: {
+                    type: "string",
+                  },
+                  examYear: {
+                    type: "string",
+                  },
+                  orderId: {
+                    type: "integer",
+                  },
+                  ask: {
+                    type: "string",
+                  },
+                  option1: {
+                    type: "string",
+                  },
+                  option2: {
+                    type: "string",
+                  },
+                  option3: {
+                    type: "string",
+                  },
+                  option4: {
+                    type: "string",
+                  },
+                  answer: {
+                    type: "string",
+                  },
+                  score: {
+                    type: "integer",
+                  },
+                },
+                required: ["questionId"],
+              },
+            },
+          },
+        },
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: "Question updated successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                    data: {
+                      type: "object",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Validation error",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Unauthorized",
+          },
+          403: {
+            description: "Forbidden - Tutors only",
+          },
+          404: {
+            description: "Question or subject not found",
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
   },
 };
 
@@ -1277,6 +1979,7 @@ app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // API routes
 const authRoutes = require("./routes/authRoutes");
+
 app.use("/api/auth", authRoutes);
 
 // Basic route to test
