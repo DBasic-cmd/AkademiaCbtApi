@@ -10,12 +10,12 @@ const startServer = async () => {
     await connectDB();
 
     // 2. Start listening for requests
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`
       ╔════════════════════════════════════════════╗
       ║     AKADEMIA CBT API Server Started        ║
       ║     Port: ${PORT}                          ║
-      ║     URL: http://localhost:${PORT}/api/docs   ║
+      ║     URL: '0.0.0.0:${PORT}'   ║
       ╚════════════════════════════════════════════╝
       `);
     });
