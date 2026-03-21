@@ -25,7 +25,7 @@ const swaggerDocument = {
     description: "API documentation for Akademia CBT backend",
   },
   servers: [
-    { url: "http://localhost:5000", description: "Local development server" },
+    { url: process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`, description: process.env.RENDER_EXTERNAL_URL ? 'Production server' : 'Local development server', },
   ],
   paths: {
     "/api/auth/login": {
@@ -631,55 +631,55 @@ const swaggerDocument = {
                 properties: {
                   userType: {
                     type: "string",
-                    example: "Tutor",
+                    
                   },
                   password: {
                     type: "string",
-                    example: "Password123!",
+                    
                   },
                   surname: {
                     type: "string",
-                    example: "Adeyemi",
+                    
                   },
                   firstname: {
                     type: "string",
-                    example: "Tunji",
+                    
                   },
                   gender: {
                     type: "string",
-                    example: "Male",
+                    
                   },
                   phoneNo: {
                     type: "string",
-                    example: "08012345678",
+                    
                   },
                   email: {
                     type: "string",
-                    example: "tutor@akademia.com",
+                    
                   },
                   birthday: {
                     type: "string",
                     format: "date",
-                    example: "1990-01-01",
+                    
                   },
                   tenant: {
                     type: "string",
-                    example: "AkademiaCBT",
+                    
                   },
                   address: {
                     type: "string",
-                    example: "Lagos, Nigeria",
+                    
                   },
                   passport: {
                     type: "string",
-                    example: "A12345678",
+                    
                   },
                   selectedSubjects: {
                     type: "array",
                     items: {
                       type: "string",
                     },
-                    example: ["Mathematics", "Physics"],
+                    
                   },
                 },
                 required: [
@@ -693,20 +693,7 @@ const swaggerDocument = {
                   "selectedSubjects",
                 ],
               },
-              example: {
-                userType: "Tutor",
-                password: "Password123!",
-                surname: "Adeyemi",
-                firstname: "Tunji",
-                gender: "Male",
-                phoneNo: "08012345678",
-                email: "tutor@akademia.com",
-                birthday: "1990-01-01",
-                tenant: "AkademiaCBT",
-                address: "Lagos, Nigeria",
-                passport: "A12345678",
-                selectedSubjects: ["Mathematics", "Physics"],
-              },
+             
             },
           },
         },
