@@ -12,7 +12,7 @@ const cors = require('cors');
 
 // Place this BEFORE any routes
 app.use(cors({
-  origin: ['http://localhost:8080', 'https://akademiacbtapi.onrender.com'], 
+  origin: [ 'https://akademiacbtapi.onrender.com'], 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true // Required if you are using cookies or sessions
