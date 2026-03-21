@@ -1,6 +1,11 @@
 require('dotenv').config(); // Loads .env file
 const connectDB = require('./src/config/db'); // Your database connection logic
 const app = require('./src/app'); // Your Express app setup
+const helmet = require('helmet');
+const cors = require('cors');
+
+app.use(helmet());
+app.use(cors());
 
 const PORT = process.env.PORT || 5000;
 
