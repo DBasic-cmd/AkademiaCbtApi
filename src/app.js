@@ -2,7 +2,8 @@ const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 
 const app = express();
-
+// Add this near the top of app.js if not already there
+const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(express.json());
 app.set("trust proxy", true); // Essential for capturing system IP
@@ -18,7 +19,7 @@ app.use(cors({
 }));
 
 // Handle the preflight request manually just in case
-app.options('*', cors());
+app.options('{*path}', cors());
 
 // Swagger documentation
 const swaggerDocument = {
