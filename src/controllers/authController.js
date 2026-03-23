@@ -70,7 +70,7 @@ exports.login = async (req, res) => {
       { expiresIn: "1d" },
     );
 
-    res.json({ success: true, token, role: user.role, ip: systemIp });
+    res.json({ success: true, token, role: user.role, userid: user._id, ip: systemIp });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
