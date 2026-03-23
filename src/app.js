@@ -1,14 +1,15 @@
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 
-const app = express();
+
 // Add this near the top of app.js if not already there
 const PORT = process.env.PORT || 5000;
 const cors = require('cors');
+const app = express();
 
 // Place this BEFORE any routes
 app.use(cors({
-  origin: [ 'http://localhost:8080/','https://akademiacbtapi.onrender.com'], 
+  origin: [ 'http://localhost:8080','https://akademia-cbt.vercel.app'], 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true // Required if you are using cookies or sessions
