@@ -821,11 +821,14 @@ exports.addSubject = async (req, res) => {
         message: "name is required"
       });
     }
+    const trimmedName = name.trim();
+    const trimmedTenant = (tenant || "DefaultTenant").trim();
+    const trimmedShortCode = (shortCode || trimmedName.substring(0, 5).toUpperCase()).trim();
 
     const existingSubject = await Subject.findOne({
       $or: [
-        { name: name.trim() },
-        { shortCode: shortCode.trim() }
+        { name: trimmedName },
+        { shortCode: trimmedShortCode }
       ]
     });
 
@@ -837,9 +840,9 @@ exports.addSubject = async (req, res) => {
     }
 
     const subject = new Subject({
-      name: name.trim(),
-      tenant: tenant.trim() || "DefaultTenant",
-      shortCode: shortCode.trim() || name.trim().substring(0, 5).toUpperCase(),
+      name: trimmedName,
+      tenant: trimmedTenant,
+      shortCode: trimmedShortCode,
       description: description ? description.trim() : ""
     });
 
