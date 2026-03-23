@@ -45,7 +45,7 @@ router.post("/add-subject", authMiddleware, adminOnly, addSubject);
 router.post("/edit-subject", authMiddleware, adminOnly, editSubject);
 router.get("/get-subject-list", authMiddleware, adminOnly, getSubjectList);
 router.get("/fetch-subjects", authMiddleware,fetchSubjects);
-router.post("/delete-subject", authMiddleware, adminOnly, deleteSubject);
+router.delete("/delete-subject", authMiddleware, adminOnly, deleteSubject);
 router.post("/create-question", authMiddleware, tutorOnly, createQuestion);
 router.post("/update-question", authMiddleware, tutorOnly, updateQuestion);
 
