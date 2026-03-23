@@ -31,7 +31,7 @@ const {
 router.post("/register", registerAdmin);
 router.post("/new-admin", newAdmin);
 router.post("/login", login);
-router.get("/logout", authMiddleware, logout);
+router.get("/logout", logout);
 router.post("/edit-admin-user", authMiddleware, adminOnly, editAdminUser);
 router.post("/change-password", authMiddleware, changePassword);
 router.get("/get-admin-by-id", authMiddleware, adminOnly, getAdminById);
