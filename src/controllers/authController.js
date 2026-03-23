@@ -815,10 +815,10 @@ exports.addSubject = async (req, res) => {
   try {
     const { name, tenant, shortCode, description } = req.body;
 
-    if (!name || !tenant || !shortCode) {
+    if (!name) {
       return res.status(400).json({
         success: false,
-        message: "name, tenant, and shortCode are required"
+        message: "name is required"
       });
     }
 
