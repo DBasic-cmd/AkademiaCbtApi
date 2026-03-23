@@ -838,8 +838,8 @@ exports.addSubject = async (req, res) => {
 
     const subject = new Subject({
       name: name.trim(),
-      tenant: tenant.trim(),
-      shortCode: shortCode.trim(),
+      tenant: tenant.trim() || "DefaultTenant",
+      shortCode: shortCode.trim() || name.trim().substring(0, 5).toUpperCase(),
       description: description ? description.trim() : ""
     });
 
