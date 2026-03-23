@@ -1984,6 +1984,8 @@ app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 const authRoutes = require("./routes/authRoutes");
 
 app.use("/api/auth", authRoutes);
+app.use("/api/User", authRoutes); // Only if these methods are in the same file
+app.use("/api/Subject", authRoutes);
 
 // Basic route to test
 app.get("/", (req, res) => {
