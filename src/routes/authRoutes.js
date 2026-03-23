@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
+const authController = require("../controllers/authController");
 const { adminOnly } = require('../middleware/adminOnly');
 const tutorOnly  = require('../middleware/tutorOnly');
 const {
@@ -29,7 +30,7 @@ const {
 
 router.post("/register", registerAdmin);
 router.post("/new-admin", newAdmin);
-router.post("/login", authMiddleware, login);
+router.post("/login", login);
 router.get("/logout", authMiddleware, logout);
 router.post("/edit-admin-user", authMiddleware, adminOnly, editAdminUser);
 router.post("/change-password", authMiddleware, changePassword);
