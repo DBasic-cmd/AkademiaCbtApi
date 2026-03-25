@@ -29,7 +29,7 @@ const {
   getTutorList,
 } = require("../controllers/authController");
 
-router.post("/register", registerAdmin);
+
 router.post("/new-admin", newAdmin);
 router.post("/login", login);
 router.get("/logout", logout);

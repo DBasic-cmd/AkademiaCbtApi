@@ -4,43 +4,7 @@ const Question = require("../models/Question");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-exports.registerAdmin = async (req, res) => {
-  try {
-    const { username, password, role } = req.body;
 
-    // Capture the IP from the request object
-    const systemIp =
-      req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-
-    // Strict Requirement: Only allow Admin registration via this endpoint
-    if (role !== "Admin") {
-      return res.status(403).json({
-        success: false,
-        message:
-          "Registration is restricted to Admin users only. Candidates and Tutors must be created by an Admin.",
-      });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const admin = new User({
-      username,
-      password: hashedPassword,
-      role: "Admin",
-      registrationIp: systemIp,
-    });
-
-    await admin.save();
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Admin registered successfully",
-        detectedIp: systemIp,
-      });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-};
 
 exports.login = async (req, res) => {
   try {
@@ -70,7 +34,13 @@ exports.login = async (req, res) => {
       { expiresIn: "1d" },
     );
 
-    res.json({ success: true, token, role: user.role, userid: user._id, ip: systemIp });
+    res.json({
+      success: true,
+      token,
+      role: user.role,
+      userid: user._id,
+      ip: systemIp,
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -118,7 +88,7 @@ exports.changePassword = async (req, res) => {
     if (!oldPassword || !newPassword) {
       return res.status(400).json({
         success: false,
-        message: 'oldPassword and newPassword are required'
+        message: "oldPassword and newPassword are required",
       });
     }
 
@@ -127,7 +97,7 @@ exports.changePassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
@@ -136,7 +106,7 @@ exports.changePassword = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Old password is incorrect'
+        message: "Old password is incorrect",
       });
     }
 
@@ -145,7 +115,7 @@ exports.changePassword = async (req, res) => {
     if (isSamePassword) {
       return res.status(400).json({
         success: false,
-        message: 'New password must be different from old password'
+        message: "New password must be different from old password",
       });
     }
 
@@ -154,12 +124,12 @@ exports.changePassword = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Password changed successfully'
+      message: "Password changed successfully",
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -170,7 +140,7 @@ exports.deleteUser = async (req, res) => {
     if (!userType || !userId) {
       return res.status(400).json({
         success: false,
-        message: "userType and userId are required"
+        message: "userType and userId are required",
       });
     }
 
@@ -179,7 +149,7 @@ exports.deleteUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
@@ -187,7 +157,7 @@ exports.deleteUser = async (req, res) => {
     if (user.userType !== userType && user.role !== userType) {
       return res.status(403).json({
         success: false,
-        message: "User type mismatch"
+        message: "User type mismatch",
       });
     }
 
@@ -195,13 +165,12 @@ exports.deleteUser = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: `${userType} deleted successfully`
+      message: `${userType} deleted successfully`,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -342,16 +311,16 @@ exports.getAdminById = async (req, res) => {
     if (!UserId) {
       return res.status(400).json({
         success: false,
-        message: "UserId is required"
+        message: "UserId is required",
       });
     }
 
-    const user = await User.findById(UserId).select('-password');
+    const user = await User.findById(UserId).select("-password");
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
@@ -359,7 +328,7 @@ exports.getAdminById = async (req, res) => {
     if (user.role !== "Admin" && user.userType !== "Admin") {
       return res.status(403).json({
         success: false,
-        message: "This endpoint is restricted to Admin users"
+        message: "This endpoint is restricted to Admin users",
       });
     }
 
@@ -367,19 +336,18 @@ exports.getAdminById = async (req, res) => {
     if (UserType && user.userType !== UserType && user.role !== UserType) {
       return res.status(403).json({
         success: false,
-        message: "UserType mismatch"
+        message: "UserType mismatch",
       });
     }
 
     res.status(200).json({
       success: true,
-      data: user
+      data: user,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -397,16 +365,17 @@ exports.newTutor = async (req, res) => {
       tenant,
       address,
       passport,
-      selectedSubjects
+      selectedSubjects,
     } = req.body;
 
-    const systemIp = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const systemIp =
+      req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress;
 
     // Restrict to Tutor creation only
     if (userType !== "Tutor") {
       return res.status(403).json({
         success: false,
-        message: "This endpoint is restricted to Tutor creation only"
+        message: "This endpoint is restricted to Tutor creation only",
       });
     }
 
@@ -416,7 +385,7 @@ exports.newTutor = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "User with this email already exists"
+        message: "User with this email already exists",
       });
     }
 
@@ -436,7 +405,7 @@ exports.newTutor = async (req, res) => {
       address,
       passport,
       selectedSubjects,
-      registrationIp: systemIp
+      registrationIp: systemIp,
     });
 
     await tutor.save();
@@ -444,13 +413,12 @@ exports.newTutor = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Tutor created successfully",
-      userId: tutor._id
+      userId: tutor._id,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -466,13 +434,13 @@ exports.editTutorUser = async (req, res) => {
       tenant,
       address,
       passport,
-      selectedSubjects
+      selectedSubjects,
     } = req.body;
 
     if (!userId) {
       return res.status(400).json({
         success: false,
-        message: "userId is required"
+        message: "userId is required",
       });
     }
 
@@ -481,7 +449,7 @@ exports.editTutorUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
@@ -489,7 +457,7 @@ exports.editTutorUser = async (req, res) => {
     if (user.role !== "Tutor" && user.userType !== "Tutor") {
       return res.status(403).json({
         success: false,
-        message: "This endpoint is restricted to Tutor users"
+        message: "This endpoint is restricted to Tutor users",
       });
     }
 
@@ -499,7 +467,7 @@ exports.editTutorUser = async (req, res) => {
       if (existingEmail) {
         return res.status(400).json({
           success: false,
-          message: "Email already in use"
+          message: "Email already in use",
         });
       }
     }
@@ -513,10 +481,10 @@ exports.editTutorUser = async (req, res) => {
       email,
       tenant,
       address,
-      passport
+      passport,
     };
 
-    Object.keys(updates).forEach(key => {
+    Object.keys(updates).forEach((key) => {
       if (updates[key] !== undefined) {
         user[key] = updates[key];
       }
@@ -532,13 +500,12 @@ exports.editTutorUser = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Tutor updated successfully",
-      data: user
+      data: user,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -549,7 +516,7 @@ exports.getTutorDetailsById = async (req, res) => {
     if (!UserType || !UserId) {
       return res.status(400).json({
         success: false,
-        message: "UserType and UserId are required"
+        message: "UserType and UserId are required",
       });
     }
 
@@ -557,16 +524,16 @@ exports.getTutorDetailsById = async (req, res) => {
     if (UserType !== "Tutor") {
       return res.status(403).json({
         success: false,
-        message: "This endpoint is restricted to Tutor users"
+        message: "This endpoint is restricted to Tutor users",
       });
     }
 
-    const user = await User.findById(UserId).select('-password');
+    const user = await User.findById(UserId).select("-password");
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "Tutor not found"
+        message: "Tutor not found",
       });
     }
 
@@ -574,20 +541,19 @@ exports.getTutorDetailsById = async (req, res) => {
     if (user.role !== "Tutor" && user.userType !== "Tutor") {
       return res.status(403).json({
         success: false,
-        message: "User is not a Tutor"
+        message: "User is not a Tutor",
       });
     }
 
     res.status(200).json({
       success: true,
       message: "Tutor details fetched successfully",
-      data: user
+      data: user,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -606,16 +572,17 @@ exports.newCandidate = async (req, res) => {
       otherName,
       physicalChallenge,
       tenant,
-      selectedSubjs
+      selectedSubjs,
     } = req.body;
 
-    const systemIp = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const systemIp =
+      req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress;
 
     // Restrict to Candidate creation only
-     if (userType !== "Candidate") {
+    if (userType !== "Candidate") {
       return res.status(403).json({
         success: false,
-        message: "This endpoint is restricted to Candidate creation only"
+        message: "This endpoint is restricted to Candidate creation only",
       });
     }
 
@@ -625,7 +592,7 @@ exports.newCandidate = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "User with this email already exists"
+        message: "User with this email already exists",
       });
     }
 
@@ -644,7 +611,7 @@ exports.newCandidate = async (req, res) => {
       tenant,
       passport,
       selectedSubjects,
-      registrationIp: systemIp
+      registrationIp: systemIp,
     });
 
     await candidate.save();
@@ -652,13 +619,12 @@ exports.newCandidate = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Candidate created successfully",
-      userId: candidate._id
+      userId: candidate._id,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -677,13 +643,13 @@ exports.editCandidateUser = async (req, res) => {
       otherName,
       physicalChallenge,
       tenant,
-      selectedSubjs
+      selectedSubjs,
     } = req.body;
 
     if (!userId) {
       return res.status(400).json({
         success: false,
-        message: "userId is required"
+        message: "userId is required",
       });
     }
 
@@ -692,7 +658,7 @@ exports.editCandidateUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
@@ -700,7 +666,7 @@ exports.editCandidateUser = async (req, res) => {
     if (user.role !== "Candidate" && user.userType !== "Candidate") {
       return res.status(403).json({
         success: false,
-        message: "This endpoint is restricted to Candidate users"
+        message: "This endpoint is restricted to Candidate users",
       });
     }
 
@@ -710,7 +676,7 @@ exports.editCandidateUser = async (req, res) => {
       if (existingEmail) {
         return res.status(400).json({
           success: false,
-          message: "Email already in use"
+          message: "Email already in use",
         });
       }
     }
@@ -726,7 +692,7 @@ exports.editCandidateUser = async (req, res) => {
       passport,
       otherName,
       physicalChallenge,
-      tenant
+      tenant,
     };
 
     Object.keys(updates).forEach((key) => {
@@ -750,13 +716,12 @@ exports.editCandidateUser = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Candidate updated successfully",
-      data: user
+      data: user,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -767,16 +732,16 @@ exports.getCandidateDetailsById = async (req, res) => {
     if (!UserId) {
       return res.status(400).json({
         success: false,
-        message: "UserId is required"
+        message: "UserId is required",
       });
     }
 
-    const user = await User.findById(UserId).select('-password');
+    const user = await User.findById(UserId).select("-password");
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "Candidate not found"
+        message: "Candidate not found",
       });
     }
 
@@ -784,7 +749,7 @@ exports.getCandidateDetailsById = async (req, res) => {
     if (user.role !== "Candidate" && user.userType !== "Candidate") {
       return res.status(403).json({
         success: false,
-        message: "This endpoint is restricted to Candidate users"
+        message: "This endpoint is restricted to Candidate users",
       });
     }
 
@@ -792,20 +757,19 @@ exports.getCandidateDetailsById = async (req, res) => {
     if (UserType && user.userType !== UserType && user.role !== UserType) {
       return res.status(403).json({
         success: false,
-        message: "UserType mismatch"
+        message: "UserType mismatch",
       });
     }
 
     res.status(200).json({
       success: true,
       message: "Candidate details fetched successfully",
-      data: user
+      data: user,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -817,24 +781,23 @@ exports.addSubject = async (req, res) => {
     if (!name) {
       return res.status(400).json({
         success: false,
-        message: "name is required"
+        message: "name is required",
       });
     }
     const trimmedName = name.trim();
     const trimmedTenant = (tenant || "DefaultTenant").trim();
-    const trimmedShortCode = (shortCode || trimmedName.substring(0, 5).toUpperCase()).trim();
+    const trimmedShortCode = (
+      shortCode || trimmedName.substring(0, 5).toUpperCase()
+    ).trim();
 
     const existingSubject = await Subject.findOne({
-      $or: [
-        { name: trimmedName },
-        { shortCode: trimmedShortCode }
-      ]
+      $or: [{ name: trimmedName }, { shortCode: trimmedShortCode }],
     });
 
     if (existingSubject) {
       return res.status(400).json({
         success: false,
-        message: "Subject with this name or shortCode already exists"
+        message: "Subject with this name or shortCode already exists",
       });
     }
 
@@ -842,7 +805,7 @@ exports.addSubject = async (req, res) => {
       name: trimmedName,
       tenant: trimmedTenant,
       shortCode: trimmedShortCode,
-      description: description ? description.trim() : ""
+      description: description ? description.trim() : "",
     });
 
     await subject.save();
@@ -850,13 +813,12 @@ exports.addSubject = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Subject added successfully",
-      data: subject
+      data: subject,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -867,7 +829,7 @@ exports.editSubject = async (req, res) => {
     if (!id) {
       return res.status(400).json({
         success: false,
-        message: "id is required"
+        message: "id is required",
       });
     }
 
@@ -876,7 +838,7 @@ exports.editSubject = async (req, res) => {
     if (!subject) {
       return res.status(404).json({
         success: false,
-        message: "Subject not found"
+        message: "Subject not found",
       });
     }
 
@@ -887,14 +849,14 @@ exports.editSubject = async (req, res) => {
         tenant: subject.tenant,
         $or: [
           name ? { name: name.trim() } : null,
-          shortCode ? { shortCode: shortCode.trim() } : null
-        ].filter(Boolean)
+          shortCode ? { shortCode: shortCode.trim() } : null,
+        ].filter(Boolean),
       });
 
       if (duplicate) {
         return res.status(400).json({
           success: false,
-          message: "Another subject with same name or shortCode exists"
+          message: "Another subject with same name or shortCode exists",
         });
       }
     }
@@ -908,13 +870,12 @@ exports.editSubject = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Subject updated successfully",
-      data: subject
+      data: subject,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -928,7 +889,7 @@ exports.getSubjectList = async (req, res) => {
     if (PageNo < 1 || PageSize < 1) {
       return res.status(400).json({
         success: false,
-        message: "PageNo and PageSize must be greater than 0"
+        message: "PageNo and PageSize must be greater than 0",
       });
     }
 
@@ -939,7 +900,7 @@ exports.getSubjectList = async (req, res) => {
     }
 
     if (Name) {
-      filter.name = { $regex: Name.trim(), $options: 'i' };
+      filter.name = { $regex: Name.trim(), $options: "i" };
     }
 
     const totalRecords = await Subject.countDocuments(filter);
@@ -957,33 +918,31 @@ exports.getSubjectList = async (req, res) => {
         pageNo: PageNo,
         pageSize: PageSize,
         totalRecords,
-        totalPages: Math.ceil(totalRecords / PageSize)
-      }
+        totalPages: Math.ceil(totalRecords / PageSize),
+      },
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
 exports.fetchSubjects = async (req, res) => {
   try {
     const subjects = await Subject.find()
-      .select('_id name shortCode tenant')
+      .select("_id name shortCode tenant")
       .sort({ name: 1 });
 
     res.status(200).json({
       success: true,
       message: "Subjects fetched successfully",
-      data: subjects
+      data: subjects,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -994,7 +953,7 @@ exports.deleteSubject = async (req, res) => {
     if (!subjectId) {
       return res.status(400).json({
         success: false,
-        message: "subjectId is required"
+        message: "subjectId is required",
       });
     }
 
@@ -1003,7 +962,7 @@ exports.deleteSubject = async (req, res) => {
     if (!subject) {
       return res.status(404).json({
         success: false,
-        message: "Subject not found"
+        message: "Subject not found",
       });
     }
 
@@ -1011,13 +970,12 @@ exports.deleteSubject = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Subject deleted successfully"
+      message: "Subject deleted successfully",
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -1033,7 +991,7 @@ exports.createQuestion = async (req, res) => {
       option3,
       option4,
       answer,
-      score
+      score,
     } = req.body;
 
     // Basic validation
@@ -1051,7 +1009,7 @@ exports.createQuestion = async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required"
+        message: "All fields are required",
       });
     }
 
@@ -1061,7 +1019,7 @@ exports.createQuestion = async (req, res) => {
     if (!subjectExists) {
       return res.status(404).json({
         success: false,
-        message: "Subject not found"
+        message: "Subject not found",
       });
     }
 
@@ -1071,7 +1029,7 @@ exports.createQuestion = async (req, res) => {
     if (!options.includes(answer)) {
       return res.status(400).json({
         success: false,
-        message: "Answer must match one of the options"
+        message: "Answer must match one of the options",
       });
     }
 
@@ -1085,7 +1043,7 @@ exports.createQuestion = async (req, res) => {
       option3: option3.trim(),
       option4: option4.trim(),
       answer: answer.trim(),
-      score
+      score,
     });
 
     await question.save();
@@ -1093,13 +1051,12 @@ exports.createQuestion = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Question created successfully",
-      data: question
+      data: question,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -1116,13 +1073,13 @@ exports.updateQuestion = async (req, res) => {
       option3,
       option4,
       answer,
-      score
+      score,
     } = req.body;
 
     if (!questionId) {
       return res.status(400).json({
         success: false,
-        message: "questionId is required"
+        message: "questionId is required",
       });
     }
 
@@ -1131,7 +1088,7 @@ exports.updateQuestion = async (req, res) => {
     if (!question) {
       return res.status(404).json({
         success: false,
-        message: "Question not found"
+        message: "Question not found",
       });
     }
 
@@ -1141,15 +1098,19 @@ exports.updateQuestion = async (req, res) => {
       if (!subjectExists) {
         return res.status(404).json({
           success: false,
-          message: "Subject not found"
+          message: "Subject not found",
         });
       }
     }
 
-    const finalOption1 = option1 !== undefined ? option1.trim() : question.option1;
-    const finalOption2 = option2 !== undefined ? option2.trim() : question.option2;
-    const finalOption3 = option3 !== undefined ? option3.trim() : question.option3;
-    const finalOption4 = option4 !== undefined ? option4.trim() : question.option4;
+    const finalOption1 =
+      option1 !== undefined ? option1.trim() : question.option1;
+    const finalOption2 =
+      option2 !== undefined ? option2.trim() : question.option2;
+    const finalOption3 =
+      option3 !== undefined ? option3.trim() : question.option3;
+    const finalOption4 =
+      option4 !== undefined ? option4.trim() : question.option4;
     const finalAnswer = answer !== undefined ? answer.trim() : question.answer;
 
     const options = [finalOption1, finalOption2, finalOption3, finalOption4];
@@ -1157,7 +1118,7 @@ exports.updateQuestion = async (req, res) => {
     if (!options.includes(finalAnswer)) {
       return res.status(400).json({
         success: false,
-        message: "Answer must match one of the options"
+        message: "Answer must match one of the options",
       });
     }
 
@@ -1177,13 +1138,12 @@ exports.updateQuestion = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Question updated successfully",
-      data: question
+      data: question,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -1198,13 +1158,13 @@ exports.getCandidateList = async (req, res) => {
     if (pageNo < 1 || pageSize < 1) {
       return res.status(400).json({
         success: false,
-        message: "pageNo and pageSize must be greater than 0"
+        message: "pageNo and pageSize must be greater than 0",
       });
     }
 
     // Base filter (only Candidates)
     const filter = {
-      $or: [{ role: "Candidate" }, { userType: "Candidate" }]
+      $or: [{ role: "Candidate" }, { userType: "Candidate" }],
     };
 
     // Filter by Phone Number
@@ -1248,14 +1208,13 @@ exports.getCandidateList = async (req, res) => {
         pageNo,
         pageSize,
         totalRecords,
-        totalPages: Math.ceil(totalRecords / pageSize)
-      }
+        totalPages: Math.ceil(totalRecords / pageSize),
+      },
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -1269,12 +1228,12 @@ exports.getTutorList = async (req, res) => {
     if (pageNo < 1 || pageSize < 1) {
       return res.status(400).json({
         success: false,
-        message: "pageNo and pageSize must be greater than 0"
+        message: "pageNo and pageSize must be greater than 0",
       });
     }
 
     const filter = {
-      $or: [{ role: "Tutor" }, { userType: "Tutor" }]
+      $or: [{ role: "Tutor" }, { userType: "Tutor" }],
     };
 
     if (PhoneNo) {
@@ -1313,13 +1272,13 @@ exports.getTutorList = async (req, res) => {
         pageNo,
         pageSize,
         totalRecords,
-        totalPages: Math.ceil(totalRecords / pageSize)
-      }
+        totalPages: Math.ceil(totalRecords / pageSize),
+      },
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 };
