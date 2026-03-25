@@ -1188,3 +1188,139 @@ exports.updateQuestion = async (req, res) => {
     });
   }
 };
+exports.getCandidateList = async (req, res) => {
+  try {
+    let { pageNo, pageSize, PhoneNo, Email, fromDate, toDate } = req.query;
+
+    // Pagination defaults
+    pageNo = parseInt(pageNo) || 1;
+    pageSize = parseInt(pageSize) || 10;
+
+    if (pageNo < 1 || pageSize < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "pageNo and pageSize must be greater than 0"
+      });
+    }
+
+    // Base filter (only Candidates)
+    const filter = {
+      $or: [{ role: "Candidate" }, { userType: "Candidate" }]
+    };
+
+    // Filter by Phone Number
+    if (PhoneNo) {
+      filter.phoneNo = { $regex: PhoneNo.trim(), $options: "i" };
+    }
+
+    // Filter by Email
+    if (Email) {
+      filter.email = { $regex: Email.trim(), $options: "i" };
+    }
+
+    // Filter by Date Range
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+
+      if (fromDate) {
+        filter.createdAt.$gte = new Date(fromDate);
+      }
+
+      if (toDate) {
+        filter.createdAt.$lte = new Date(toDate);
+      }
+    }
+
+    // Total count
+    const totalRecords = await User.countDocuments(filter);
+
+    // Fetch data
+    const candidates = await User.find(filter)
+      .select("-password") // never expose password
+      .sort({ createdAt: -1 })
+      .skip((pageNo - 1) * pageSize)
+      .limit(pageSize);
+
+    res.status(200).json({
+      success: true,
+      message: "Candidates fetched successfully",
+      data: candidates,
+      pagination: {
+        pageNo,
+        pageSize,
+        totalRecords,
+        totalPages: Math.ceil(totalRecords / pageSize)
+      }
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+};
+exports.getTutorList = async (req, res) => {
+  try {
+    let { pageNo, pageSize, PhoneNo, Email, fromDate, toDate } = req.query;
+
+    pageNo = parseInt(pageNo) || 1;
+    pageSize = parseInt(pageSize) || 10;
+
+    if (pageNo < 1 || pageSize < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "pageNo and pageSize must be greater than 0"
+      });
+    }
+
+    const filter = {
+      $or: [{ role: "Tutor" }, { userType: "Tutor" }]
+    };
+
+    if (PhoneNo) {
+      filter.phoneNo = { $regex: PhoneNo.trim(), $options: "i" };
+    }
+
+    if (Email) {
+      filter.email = { $regex: Email.trim(), $options: "i" };
+    }
+
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+
+      if (fromDate) {
+        filter.createdAt.$gte = new Date(fromDate);
+      }
+
+      if (toDate) {
+        filter.createdAt.$lte = new Date(toDate);
+      }
+    }
+
+    const totalRecords = await User.countDocuments(filter);
+
+    const tutors = await User.find(filter)
+      .select("-password")
+      .sort({ createdAt: -1 })
+      .skip((pageNo - 1) * pageSize)
+      .limit(pageSize);
+
+    res.status(200).json({
+      success: true,
+      message: "Tutors fetched successfully",
+      data: tutors,
+      pagination: {
+        pageNo,
+        pageSize,
+        totalRecords,
+        totalPages: Math.ceil(totalRecords / pageSize)
+      }
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+};

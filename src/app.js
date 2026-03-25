@@ -1,27 +1,26 @@
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 
-
 // Add this near the top of app.js if not already there
 const PORT = process.env.PORT || 5000;
-const cors = require('cors');
+const cors = require("cors");
 const app = express();
 
 // Place this BEFORE any routes
-app.use(cors({
-  origin: [ 'http://localhost:8080','https://akademia-cbt.vercel.app'], 
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true // Required if you are using cookies or sessions
-}));
+app.use(
+  cors({
+    origin: ["http://localhost:8080", "https://akademia-cbt.vercel.app"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true, // Required if you are using cookies or sessions
+  }),
+);
 // Middleware
 app.use(express.json());
 app.set("trust proxy", true); // Essential for capturing system IP
 
-
-
 // Handle the preflight request manually just in case
-app.options('{*path}', cors());
+app.options("{*path}", cors());
 
 // Swagger documentation
 const swaggerDocument = {
@@ -41,7 +40,12 @@ const swaggerDocument = {
     description: "API documentation for Akademia CBT backend",
   },
   servers: [
-    { url: process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`, description: process.env.RENDER_EXTERNAL_URL ? 'Production server' : 'Local development server', },
+    {
+      url: process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`,
+      description: process.env.RENDER_EXTERNAL_URL
+        ? "Production server"
+        : "Local development server",
+    },
   ],
   paths: {
     "/api/auth/login": {
@@ -183,7 +187,7 @@ const swaggerDocument = {
                   birthday: {
                     type: "string",
                     format: "date",
-                    example: "1995-05-20",
+                    
                   },
                   passport: { type: "string" },
                   address: { type: "string" },
@@ -248,29 +252,24 @@ const swaggerDocument = {
                 properties: {
                   userType: {
                     type: "string",
-                    example: "Admin",
+                    
                   },
                   userId: {
                     type: "string",
-                    example: "67d1f42e7e9bce23a9c10c51",
+                    
                   },
                   oldPassword: {
                     type: "string",
-                    example: "OldPassword123!",
+                    
                   },
                   newPassword: {
                     type: "string",
-                    example: "NewPassword456!",
+                    
                   },
                 },
                 required: ["userType", "userId", "oldPassword", "newPassword"],
               },
-              example: {
-                userType: "Admin",
-                userId: "67d1f42e7e9bce23a9c10c51",
-                oldPassword: "OldPassword123!",
-                newPassword: "NewPassword456!",
-              },
+              
             },
           },
         },
@@ -452,36 +451,36 @@ const swaggerDocument = {
                 properties: {
                   userId: {
                     type: "string",
-                    example: "67d1f42e7e9bce23a9c10c51",
+                    
                   },
                   surname: {
                     type: "string",
-                    example: "Adeyemi",
+                    
                   },
                   firstname: {
                     type: "string",
-                    example: "Tunji",
+                    
                   },
                   gender: {
                     type: "string",
-                    example: "Male",
+                    
                   },
                   phoneNo: {
                     type: "string",
-                    example: "08012345678",
+                    
                   },
                   birthday: {
                     type: "string",
                     format: "date",
-                    example: "1995-05-20",
+                    
                   },
                   passport: {
                     type: "string",
-                    example: "A12345678",
+                    
                   },
                   tenant: {
                     type: "string",
-                    example: "AkademiaCBT",
+                    
                   },
                   imagePhoto: {
                     type: "string",
@@ -490,17 +489,7 @@ const swaggerDocument = {
                 },
                 required: ["userId"],
               },
-              example: {
-                userId: "67d1f42e7e9bce23a9c10c51",
-                surname: "Adeyemi",
-                firstname: "Tunji",
-                gender: "Male",
-                phoneNo: "08012345678",
-                birthday: "1995-05-20",
-                passport: "A12345678",
-                tenant: "AkademiaCBT",
-                imagePhoto: "base64string",
-              },
+              
             },
           },
         },
@@ -563,7 +552,7 @@ const swaggerDocument = {
               type: "string",
             },
             description: "The ID of the user",
-            example: "67d1f42e7e9bce23a9c10c51",
+            
           },
           {
             name: "UserType",
@@ -573,7 +562,7 @@ const swaggerDocument = {
               type: "string",
             },
             description: "Type of user (Admin)",
-            example: "Admin",
+            
           },
         ],
         responses: {
@@ -647,55 +636,43 @@ const swaggerDocument = {
                 properties: {
                   userType: {
                     type: "string",
-                    
                   },
                   password: {
                     type: "string",
-                    
                   },
                   surname: {
                     type: "string",
-                    
                   },
                   firstname: {
                     type: "string",
-                    
                   },
                   gender: {
                     type: "string",
-                    
                   },
                   phoneNo: {
                     type: "string",
-                    
                   },
                   email: {
                     type: "string",
-                    
                   },
                   birthday: {
                     type: "string",
                     format: "date",
-                    
                   },
                   tenant: {
                     type: "string",
-                    
                   },
                   address: {
                     type: "string",
-                    
                   },
                   passport: {
                     type: "string",
-                    
                   },
                   selectedSubjects: {
                     type: "array",
                     items: {
                       type: "string",
                     },
-                    
                   },
                 },
                 required: [
@@ -709,7 +686,6 @@ const swaggerDocument = {
                   "selectedSubjects",
                 ],
               },
-             
             },
           },
         },
@@ -741,6 +717,122 @@ const swaggerDocument = {
         },
       },
     },
+    "/api/User/tutor-list": {
+      get: {
+        tags: ["User"],
+        summary: "Get tutor list",
+        description: "Fetch a paginated list of tutors with optional filters",
+        parameters: [
+          {
+            name: "pageNo",
+            in: "query",
+            required: false,
+            schema: {
+              type: "integer",
+              
+            },
+            description: "Page number",
+          },
+          {
+            name: "pageSize",
+            in: "query",
+            required: false,
+            schema: {
+              type: "integer",
+              
+            },
+            description: "Number of records per page",
+          },
+          {
+            name: "PhoneNo",
+            in: "query",
+            required: false,
+            schema: {
+              type: "string",
+              
+            },
+            description: "Filter by phone number",
+          },
+          {
+            name: "Email",
+            in: "query",
+            required: false,
+            schema: {
+              type: "string",
+              
+            },
+            description: "Filter by email",
+          },
+          {
+            name: "fromDate",
+            in: "query",
+            required: false,
+            schema: {
+              type: "string",
+              format: "date-time",
+              
+            },
+            description: "Start date filter",
+          },
+          {
+            name: "toDate",
+            in: "query",
+            required: false,
+            schema: {
+              type: "string",
+              format: "date-time",
+              
+            },
+            description: "End date filter",
+          },
+        ],
+        responses: {
+          200: {
+            description: "Tutors fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                    data: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          _id: { type: "string" },
+                          surname: { type: "string" },
+                          firstname: { type: "string" },
+                          phoneNo: { type: "string" },
+                          email: { type: "string" },
+                          createdAt: { type: "string" },
+                        },
+                      },
+                    },
+                    pagination: {
+                      type: "object",
+                      properties: {
+                        pageNo: { type: "integer" },
+                        pageSize: { type: "integer" },
+                        totalRecords: { type: "integer" },
+                        totalPages: { type: "integer" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Invalid query parameters",
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
     "/api/User/edit-tutor-user": {
       post: {
         tags: ["User"],
@@ -755,62 +847,51 @@ const swaggerDocument = {
                 properties: {
                   userId: {
                     type: "string",
-                    example: "67d1f42e7e9bce23a9c10c51",
+                    
                   },
                   surname: {
                     type: "string",
-                    example: "Adeyemi",
+                    
                   },
                   firstname: {
                     type: "string",
-                    example: "Tunji",
+                    
                   },
                   gender: {
                     type: "string",
-                    example: "Male",
+                    
                   },
                   phoneNo: {
                     type: "string",
-                    example: "08012345678",
+                    
                   },
                   email: {
                     type: "string",
-                    example: "tutor@akademia.com",
+                    
                   },
                   tenant: {
                     type: "string",
-                    example: "AkademiaCBT",
+                    
                   },
                   address: {
                     type: "string",
-                    example: "Lagos, Nigeria",
+                    
                   },
                   passport: {
                     type: "string",
-                    example: "A12345678",
+                    
                   },
                   selectedSubjects: {
                     type: "array",
                     items: {
                       type: "string",
                     },
-                    example: ["Mathematics", "Physics"],
+                    
                   },
                 },
                 required: ["userId"],
               },
-              example: {
-                userId: "67d1f42e7e9bce23a9c10c51",
-                surname: "Adeyemi",
-                firstname: "Tunji",
-                gender: "Male",
-                phoneNo: "08012345678",
-                email: "tutor@akademia.com",
-                tenant: "AkademiaCBT",
-                address: "Lagos, Nigeria",
-                passport: "A12345678",
-                selectedSubjects: ["Mathematics", "Physics"],
-              },
+              
             },
           },
         },
@@ -858,7 +939,7 @@ const swaggerDocument = {
             schema: {
               type: "string",
             },
-            example: "Tutor",
+            
           },
           {
             name: "UserId",
@@ -867,7 +948,7 @@ const swaggerDocument = {
             schema: {
               type: "string",
             },
-            example: "67d1f42e7e9bce23a9c10c51",
+            
           },
         ],
         responses: {
@@ -1014,6 +1095,123 @@ const swaggerDocument = {
         },
       },
     },
+    "/api/User/candidate-list": {
+      get: {
+        tags: ["User"],
+        summary: "Get candidate list",
+        description:
+          "Fetch a paginated list of candidates with optional filters",
+        parameters: [
+          {
+            name: "pageNo",
+            in: "query",
+            required: false,
+            schema: {
+              type: "integer",
+              
+            },
+            description: "Page number",
+          },
+          {
+            name: "pageSize",
+            in: "query",
+            required: false,
+            schema: {
+              type: "integer",
+             
+            },
+            description: "Number of records per page",
+          },
+          {
+            name: "PhoneNo",
+            in: "query",
+            required: false,
+            schema: {
+              type: "string",
+              
+            },
+            description: "Filter by phone number",
+          },
+          {
+            name: "Email",
+            in: "query",
+            required: false,
+            schema: {
+              type: "string",
+              
+            },
+            description: "Filter by email",
+          },
+          {
+            name: "fromDate",
+            in: "query",
+            required: false,
+            schema: {
+              type: "string",
+              format: "date-time",
+              
+            },
+            description: "Start date filter",
+          },
+          {
+            name: "toDate",
+            in: "query",
+            required: false,
+            schema: {
+              type: "string",
+              format: "date-time",
+              
+            },
+            description: "End date filter",
+          },
+        ],
+        responses: {
+          200: {
+            description: "Candidates fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                    data: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          _id: { type: "string" },
+                          surname: { type: "string" },
+                          firstname: { type: "string" },
+                          phoneNo: { type: "string" },
+                          email: { type: "string" },
+                          createdAt: { type: "string" },
+                        },
+                      },
+                    },
+                    pagination: {
+                      type: "object",
+                      properties: {
+                        pageNo: { type: "integer" },
+                        pageSize: { type: "integer" },
+                        totalRecords: { type: "integer" },
+                        totalPages: { type: "integer" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Invalid query parameters",
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
     "/api/User/edit-candidate-user": {
       post: {
         tags: ["User"],
@@ -1028,78 +1226,64 @@ const swaggerDocument = {
                 properties: {
                   userId: {
                     type: "string",
-                    example: "67d1f42e7e9bce23a9c10c51",
+                    
                   },
                   password: {
                     type: "string",
-                    example: "NewPassword123!",
+                    
                   },
                   surname: {
                     type: "string",
-                    example: "Adeyemi",
+                    
                   },
                   firstname: {
                     type: "string",
-                    example: "Tunji",
+                    
                   },
                   gender: {
                     type: "string",
-                    example: "Male",
+                    
                   },
                   phoneNo: {
                     type: "string",
-                    example: "08012345678",
+                    
                   },
                   email: {
                     type: "string",
-                    example: "candidate@akademia.com",
+                    
                   },
                   birthday: {
                     type: "string",
                     format: "date",
-                    example: "2002-05-20",
+                    
                   },
                   passport: {
                     type: "string",
-                    example: "A12345678",
+                    
                   },
                   otherName: {
                     type: "string",
-                    example: "Oluwaseun",
+                    
                   },
                   physicalChallenge: {
                     type: "string",
-                    example: "None",
+                    
                   },
                   tenant: {
                     type: "string",
-                    example: "AkademiaCBT",
+                    
                   },
                   selectedSubjs: {
                     type: "array",
                     items: {
                       type: "string",
                     },
-                    example: ["Mathematics", "English Language", "Physics"],
+                    
                   },
                 },
                 required: ["userId"],
               },
-              example: {
-                userId: "67d1f42e7e9bce23a9c10c51",
-                password: "NewPassword123!",
-                surname: "Adeyemi",
-                firstname: "Tunji",
-                gender: "Male",
-                phoneNo: "08012345678",
-                email: "candidate@akademia.com",
-                birthday: "2002-05-20",
-                passport: "A12345678",
-                otherName: "Oluwaseun",
-                physicalChallenge: "None",
-                tenant: "AkademiaCBT",
-                selectedSubjs: ["Mathematics", "English Language", "Physics"],
-              },
+              
             },
           },
         },
@@ -1184,7 +1368,7 @@ const swaggerDocument = {
               type: "string",
             },
             description: "Type of user",
-            example: "Candidate",
+            
           },
           {
             name: "UserId",
@@ -1194,7 +1378,7 @@ const swaggerDocument = {
               type: "string",
             },
             description: "The ID of the candidate",
-            example: "67d1f42e7e9bce23a9c10c51",
+            
           },
         ],
         responses: {
@@ -1574,7 +1758,7 @@ const swaggerDocument = {
         },
       },
     },
-    "/api/Subject/fetch-subject": {
+    "/api/Subject/fetch-subjects": {
       get: {
         tags: ["Subject"],
         summary: "Fetch all subjects",

@@ -25,6 +25,8 @@ const {
   deleteSubject,
   createQuestion,
   updateQuestion,
+  getCandidateList,
+  getTutorList,
 } = require("../controllers/authController");
 
 router.post("/register", registerAdmin);
@@ -48,5 +50,7 @@ router.get("/fetch-subjects", authMiddleware,fetchSubjects);
 router.delete("/delete-subject", authMiddleware, adminOnly, deleteSubject);
 router.post("/create-question", authMiddleware, tutorOnly, createQuestion);
 router.post("/update-question", authMiddleware, tutorOnly, updateQuestion);
+router.get("/candidate-list", authMiddleware, adminOnly, getCandidateList);
+router.get("/tutor-list", authMiddleware, adminOnly, getTutorList);
 
 module.exports = router;
