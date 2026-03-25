@@ -309,52 +309,35 @@ exports.editAdminUser = async (req, res) => {
     });
   }
 };
-exports.getAdminById = async (req, res) => {
+exports.getAdminDetailsById = async (req, res) => {
   try {
-    const { UserId, UserType } = req.query;
+    const user = await User.findById(req.params.id);
+    if (!user || user.role !== 'Admin') return res.status(404).json({ succeeded: false, message: "Admin not found" });
 
-    if (!UserId) {
-      return res.status(400).json({
-        success: false,
-        message: "UserId is required",
-      });
-    }
-
-    const user = await User.findById(UserId).select("-password");
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    // Ensure it's an Admin
-    if (user.role !== "Admin" && user.userType !== "Admin") {
-      return res.status(403).json({
-        success: false,
-        message: "This endpoint is restricted to Admin users",
-      });
-    }
-
-    // Optional check if UserType is provided
-    if (UserType && user.userType !== UserType && user.role !== UserType) {
-      return res.status(403).json({
-        success: false,
-        message: "UserType mismatch",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: user,
+    res.json({
+      succeeded: true,
+      responseCode: null,
+      code: 0,
+      message: "Success",
+      errors: null,
+      data: {
+        id: user._id,
+        password: user.password,
+        surname: user.surname,
+        firstname: user.firstname,
+        gender: user.gender,
+        phoneNo: user.phoneNo,
+        email: user.email,
+        birthday: user.dateOfBirth,
+        passport: user.passport,
+        isActive: user.isActive,
+        isDelete: user.isDelete,
+        createdBy: user.createdBy,
+        createdDate: user.createdDate,
+        image: user.image
+      }
     });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message,
-    });
-  }
+  } catch (err) { res.status(500).json({ succeeded: false, error: err.message }); }
 };
 exports.newTutor = async (req, res) => {
   try {
@@ -516,51 +499,31 @@ exports.editTutorUser = async (req, res) => {
 };
 exports.getTutorDetailsById = async (req, res) => {
   try {
-    const { UserType, UserId } = req.query;
+    const user = await User.findById(req.params.id);
+    if (!user || user.role !== 'Tutor') return res.status(404).json({ succeeded: false, message: "Tutor not found" });
 
-    if (!UserType || !UserId) {
-      return res.status(400).json({
-        success: false,
-        message: "UserType and UserId are required",
-      });
-    }
-
-    // Enforce Tutor
-    if (UserType !== "Tutor") {
-      return res.status(403).json({
-        success: false,
-        message: "This endpoint is restricted to Tutor users",
-      });
-    }
-
-    const user = await User.findById(UserId).select("-password");
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "Tutor not found",
-      });
-    }
-
-    // Extra safety check
-    if (user.role !== "Tutor" && user.userType !== "Tutor") {
-      return res.status(403).json({
-        success: false,
-        message: "User is not a Tutor",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Tutor details fetched successfully",
-      data: user,
+    res.json({
+      succeeded: true,
+      responseCode: null,
+      code: 0,
+      message: "Success",
+      errors: null,
+      data: {
+        id: user._id,
+        staffId: user.staffId,
+        surname: user.surname,
+        firstname: user.firstname,
+        phoneNo: user.phoneNo,
+        email: user.email,
+        gender: user.gender,
+        tenant: user.tenant,
+        image: user.image,
+        address: user.address,
+        passport: user.passport,
+        tutorSubjs: user.tutorSubjs
+      }
     });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message,
-    });
-  }
+  } catch (err) { res.status(500).json({ succeeded: false, error: err.message }); }
 };
 exports.newCandidate = async (req, res) => {
   try {
@@ -732,51 +695,32 @@ exports.editCandidateUser = async (req, res) => {
 };
 exports.getCandidateDetailsById = async (req, res) => {
   try {
-    const { UserType, UserId } = req.query;
+    const user = await User.findById(req.params.id);
+    if (!user || user.role !== 'Candidate') return res.status(404).json({ succeeded: false, message: "Candidate not found" });
 
-    if (!UserId) {
-      return res.status(400).json({
-        success: false,
-        message: "UserId is required",
-      });
-    }
-
-    const user = await User.findById(UserId).select("-password");
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "Candidate not found",
-      });
-    }
-
-    // Ensure it's a Candidate
-    if (user.role !== "Candidate" && user.userType !== "Candidate") {
-      return res.status(403).json({
-        success: false,
-        message: "This endpoint is restricted to Candidate users",
-      });
-    }
-
-    // Optional check if UserType is provided
-    if (UserType && user.userType !== UserType && user.role !== UserType) {
-      return res.status(403).json({
-        success: false,
-        message: "UserType mismatch",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Candidate details fetched successfully",
-      data: user,
+    res.json({
+      succeeded: true,
+      responseCode: null,
+      code: 0,
+      message: "Success",
+      errors: null,
+      data: {
+        id: user._id,
+        regNo: user.regNo,
+        surname: user.surname,
+        firstName: user.firstname, // Note the capital N for Candidate
+        otherName: user.otherName,
+        physicalChallenge: user.physicalChallenge,
+        gender: user.gender,
+        phoneNo: user.phoneNo,
+        email: user.email,
+        passport: user.passport,
+        dateOfBirth: user.dateOfBirth,
+        tenant: user.tenant,
+        image: user.image
+      }
     });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message,
-    });
-  }
+  } catch (err) { res.status(500).json({ succeeded: false, error: err.message }); }
 };
 
 exports.addSubject = async (req, res) => {
