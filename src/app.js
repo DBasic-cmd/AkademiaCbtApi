@@ -1040,9 +1040,6 @@ const swaggerDocument = {
                   tenant: {
                     type: "string",
                   },
-                  address: {
-                    type: "string",
-                  },
                   passport: {
                     type: "string",
                   },

@@ -642,7 +642,6 @@ exports.newCandidate = async (req, res) => {
       email,
       birthday,
       tenant,
-      address,
       passport,
       selectedSubjects,
       registrationIp: systemIp
