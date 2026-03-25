@@ -10,7 +10,7 @@ const {
   newAdmin,
   editAdminUser,
   changePassword,
-  getAdminById,
+  getAdminDetailsById,
   newTutor,
   editTutorUser,
   getTutorDetailsById,
@@ -35,7 +35,7 @@ router.post("/login", login);
 router.get("/logout", logout);
 router.post("/edit-admin-user", authMiddleware, adminOnly, editAdminUser);
 router.post("/change-password", authMiddleware, changePassword);
-router.get("/get-admin-by-id", authMiddleware, adminOnly, getAdminById);
+router.get("/get-admin-details-by-id", authMiddleware, adminOnly, getAdminDetailsById);
 router.post("/new-tutor", authMiddleware, adminOnly, newTutor);
 router.post("/edit-tutor-user", authMiddleware, adminOnly, editTutorUser);
 router.get("/get-tutor-details-by-id", authMiddleware, adminOnly, getTutorDetailsById);
