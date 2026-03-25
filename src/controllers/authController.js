@@ -8,26 +8,31 @@ const jwt = require("jsonwebtoken");
 
 exports.login = async (req, res) => {
   try {
-    const { username, password, role } = req.body;
+    // 1. Destructure 'email' instead of 'username'
+    const { email, password, role } = req.body;
+    
     const systemIp =
       req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress;
 
-    const user = await User.findOne({ username });
+    // 2. Find the user by email
+    const user = await User.findOne({ email: email.toLowerCase() }); 
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
-    // If the client sends a role, ensure it matches the stored role
+    // 3. Role check (Ensures an Admin isn't logging in through a Candidate portal)
     if (role && user.role !== role) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // 4. Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
       return res.status(401).json({ message: "Invalid credentials" });
 
-    // Update IP on every login
+    // 5. Update last login IP
     user.lastLoginIp = systemIp;
     await user.save();
 
+    // 6. Generate JWT
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,

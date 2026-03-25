@@ -51,7 +51,7 @@ const swaggerDocument = {
     "/api/auth/login": {
       post: {
         tags: ["Auth"],
-        summary: "Login with username, password and role",
+        summary: "Login with email, password and role",
         requestBody: {
           required: true,
           content: {
@@ -59,12 +59,15 @@ const swaggerDocument = {
               schema: {
                 type: "object",
                 properties: {
-                  username: { type: "string" },
+                  email: { type: "string", format: "email" },
                   password: { type: "string" },
-                  role: { type: "string" },
+                  role: {
+                    type: "string",
+                    enum: ["Admin", "Candidate", "Tutor"],
+                  },
                   ip: { type: "string" },
                 },
-                required: ["username", "password", "role"],
+                required: ["email", "password", "role"],
               },
             },
           },
@@ -80,6 +83,7 @@ const swaggerDocument = {
                     success: { type: "boolean" },
                     token: { type: "string" },
                     role: { type: "string" },
+                    userid: { type: "string" },
                     ip: { type: "string" },
                   },
                 },
@@ -187,7 +191,6 @@ const swaggerDocument = {
                   birthday: {
                     type: "string",
                     format: "date",
-                    
                   },
                   passport: { type: "string" },
                   address: { type: "string" },
@@ -252,24 +255,19 @@ const swaggerDocument = {
                 properties: {
                   userType: {
                     type: "string",
-                    
                   },
                   userId: {
                     type: "string",
-                    
                   },
                   oldPassword: {
                     type: "string",
-                    
                   },
                   newPassword: {
                     type: "string",
-                    
                   },
                 },
                 required: ["userType", "userId", "oldPassword", "newPassword"],
               },
-              
             },
           },
         },
@@ -451,36 +449,28 @@ const swaggerDocument = {
                 properties: {
                   userId: {
                     type: "string",
-                    
                   },
                   surname: {
                     type: "string",
-                    
                   },
                   firstname: {
                     type: "string",
-                    
                   },
                   gender: {
                     type: "string",
-                    
                   },
                   phoneNo: {
                     type: "string",
-                    
                   },
                   birthday: {
                     type: "string",
                     format: "date",
-                    
                   },
                   passport: {
                     type: "string",
-                    
                   },
                   tenant: {
                     type: "string",
-                    
                   },
                   imagePhoto: {
                     type: "string",
@@ -489,7 +479,6 @@ const swaggerDocument = {
                 },
                 required: ["userId"],
               },
-              
             },
           },
         },
@@ -552,7 +541,6 @@ const swaggerDocument = {
               type: "string",
             },
             description: "The ID of the user",
-            
           },
           {
             name: "UserType",
@@ -562,7 +550,6 @@ const swaggerDocument = {
               type: "string",
             },
             description: "Type of user (Admin)",
-            
           },
         ],
         responses: {
@@ -729,7 +716,6 @@ const swaggerDocument = {
             required: false,
             schema: {
               type: "integer",
-              
             },
             description: "Page number",
           },
@@ -739,7 +725,6 @@ const swaggerDocument = {
             required: false,
             schema: {
               type: "integer",
-              
             },
             description: "Number of records per page",
           },
@@ -749,7 +734,6 @@ const swaggerDocument = {
             required: false,
             schema: {
               type: "string",
-              
             },
             description: "Filter by phone number",
           },
@@ -759,7 +743,6 @@ const swaggerDocument = {
             required: false,
             schema: {
               type: "string",
-              
             },
             description: "Filter by email",
           },
@@ -770,7 +753,6 @@ const swaggerDocument = {
             schema: {
               type: "string",
               format: "date-time",
-              
             },
             description: "Start date filter",
           },
@@ -781,7 +763,6 @@ const swaggerDocument = {
             schema: {
               type: "string",
               format: "date-time",
-              
             },
             description: "End date filter",
           },
@@ -847,51 +828,40 @@ const swaggerDocument = {
                 properties: {
                   userId: {
                     type: "string",
-                    
                   },
                   surname: {
                     type: "string",
-                    
                   },
                   firstname: {
                     type: "string",
-                    
                   },
                   gender: {
                     type: "string",
-                    
                   },
                   phoneNo: {
                     type: "string",
-                    
                   },
                   email: {
                     type: "string",
-                    
                   },
                   tenant: {
                     type: "string",
-                    
                   },
                   address: {
                     type: "string",
-                    
                   },
                   passport: {
                     type: "string",
-                    
                   },
                   selectedSubjects: {
                     type: "array",
                     items: {
                       type: "string",
                     },
-                    
                   },
                 },
                 required: ["userId"],
               },
-              
             },
           },
         },
@@ -939,7 +909,6 @@ const swaggerDocument = {
             schema: {
               type: "string",
             },
-            
           },
           {
             name: "UserId",
@@ -948,7 +917,6 @@ const swaggerDocument = {
             schema: {
               type: "string",
             },
-            
           },
         ],
         responses: {
@@ -1105,7 +1073,6 @@ const swaggerDocument = {
             required: false,
             schema: {
               type: "integer",
-              
             },
             description: "Page number",
           },
@@ -1115,7 +1082,6 @@ const swaggerDocument = {
             required: false,
             schema: {
               type: "integer",
-             
             },
             description: "Number of records per page",
           },
@@ -1125,7 +1091,6 @@ const swaggerDocument = {
             required: false,
             schema: {
               type: "string",
-              
             },
             description: "Filter by phone number",
           },
@@ -1135,7 +1100,6 @@ const swaggerDocument = {
             required: false,
             schema: {
               type: "string",
-              
             },
             description: "Filter by email",
           },
@@ -1146,7 +1110,6 @@ const swaggerDocument = {
             schema: {
               type: "string",
               format: "date-time",
-              
             },
             description: "Start date filter",
           },
@@ -1157,7 +1120,6 @@ const swaggerDocument = {
             schema: {
               type: "string",
               format: "date-time",
-              
             },
             description: "End date filter",
           },
@@ -1223,64 +1185,50 @@ const swaggerDocument = {
                 properties: {
                   userId: {
                     type: "string",
-                    
                   },
                   password: {
                     type: "string",
-                    
                   },
                   surname: {
                     type: "string",
-                    
                   },
                   firstname: {
                     type: "string",
-                    
                   },
                   gender: {
                     type: "string",
-                    
                   },
                   phoneNo: {
                     type: "string",
-                    
                   },
                   email: {
                     type: "string",
-                    
                   },
                   birthday: {
                     type: "string",
                     format: "date",
-                    
                   },
                   passport: {
                     type: "string",
-                    
                   },
                   otherName: {
                     type: "string",
-                    
                   },
                   physicalChallenge: {
                     type: "string",
-                    
                   },
                   tenant: {
                     type: "string",
-                    
                   },
                   selectedSubjs: {
                     type: "array",
                     items: {
                       type: "string",
                     },
-                    
                   },
                 },
                 required: ["userId"],
               },
-              
             },
           },
         },
@@ -1365,7 +1313,6 @@ const swaggerDocument = {
               type: "string",
             },
             description: "Type of user",
-            
           },
           {
             name: "UserId",
@@ -1375,7 +1322,6 @@ const swaggerDocument = {
               type: "string",
             },
             description: "The ID of the candidate",
-            
           },
         ],
         responses: {
