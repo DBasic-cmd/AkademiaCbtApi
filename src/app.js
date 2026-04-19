@@ -9,7 +9,7 @@ const app = express();
 // Place this BEFORE any routes
 app.use(
   cors({
-    origin: ["http://localhost:8080","http://localhost:8080", "https://akademia-cbt.vercel.app"],
+    origin: ["http://localhost:8080","http://localhost:8081", "https://akademia-cbt.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true, // Required if you are using cookies or sessions
