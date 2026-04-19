@@ -9,7 +9,7 @@ const app = express();
 // Place this BEFORE any routes
 app.use(
   cors({
-    origin: ["http://localhost:8080", "https://akademia-cbt.vercel.app"],
+    origin: ["http://localhost:8080","http://localhost:8080", "https://akademia-cbt.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true, // Required if you are using cookies or sessions
@@ -349,7 +349,7 @@ const swaggerDocument = {
       },
     },
     "/api/User/delete-user": {
-      post: {
+      delete: {
         tags: ["User"],
         summary: "Delete a user",
         description: "Deletes a user by userType and userId",
@@ -2095,6 +2095,1068 @@ const swaggerDocument = {
           },
           404: {
             description: "Question or subject not found",
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Question/bulk-question": {
+      post: {
+        tags: ["Question"],
+        summary: "Bulk upload questions",
+        description: "Uploads multiple exam questions at once",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    subject: {
+                      type: "string",
+                    },
+                    examYear: {
+                      type: "string",
+                    },
+                    orderId: {
+                      type: "integer",
+                    },
+                    ask: {
+                      type: "string",
+                    },
+                    option1: {
+                      type: "string",
+                    },
+                    option2: {
+                      type: "string",
+                    },
+                    option3: {
+                      type: "string",
+                    },
+                    option4: {
+                      type: "string",
+                    },
+                    answer: {
+                      type: "string",
+                    },
+                    score: {
+                      type: "integer",
+                    },
+                  },
+                  required: [
+                    "subject",
+                    "examYear",
+                    "orderId",
+                    "ask",
+                    "option1",
+                    "option2",
+                    "option3",
+                    "option4",
+                    "answer",
+                    "score",
+                  ],
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Questions uploaded successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                    totalUploaded: {
+                      type: "integer",
+                    },
+                    data: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Validation error",
+          },
+          404: {
+            description: "Subject not found",
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Question/question-list": {
+      get: {
+        tags: ["Question"],
+        summary: "Get question list",
+        description:
+          "Fetches a paginated list of questions with optional filtering by exam year and subject",
+        parameters: [
+          {
+            name: "PageNo",
+            in: "query",
+            required: false,
+            schema: {
+              type: "integer",
+              format: "int32",
+            },
+            description: "Page number",
+          },
+          {
+            name: "PageSize",
+            in: "query",
+            required: false,
+            schema: {
+              type: "integer",
+              format: "int32",
+            },
+            description: "Number of records per page",
+          },
+          {
+            name: "ExamYear",
+            in: "query",
+            required: false,
+            schema: {
+              type: "string",
+            },
+            description: "Filter by exam year",
+          },
+          {
+            name: "Subject",
+            in: "query",
+            required: false,
+            schema: {
+              type: "string",
+            },
+            description: "Filter by subject",
+          },
+        ],
+        responses: {
+          200: {
+            description: "Questions fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                    data: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          _id: {
+                            type: "string",
+                          },
+                          subject: {
+                            type: "string",
+                          },
+                          examYear: {
+                            type: "string",
+                          },
+                          orderId: {
+                            type: "integer",
+                          },
+                          ask: {
+                            type: "string",
+                          },
+                          option1: {
+                            type: "string",
+                          },
+                          option2: {
+                            type: "string",
+                          },
+                          option3: {
+                            type: "string",
+                          },
+                          option4: {
+                            type: "string",
+                          },
+                          answer: {
+                            type: "string",
+                          },
+                          score: {
+                            type: "integer",
+                          },
+                          createdAt: {
+                            type: "string",
+                          },
+                          updatedAt: {
+                            type: "string",
+                          },
+                        },
+                      },
+                    },
+                    pagination: {
+                      type: "object",
+                      properties: {
+                        pageNo: {
+                          type: "integer",
+                        },
+                        pageSize: {
+                          type: "integer",
+                        },
+                        totalRecords: {
+                          type: "integer",
+                        },
+                        totalPages: {
+                          type: "integer",
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Invalid pagination parameters",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Question/view-bulk-question": {
+      get: {
+        tags: ["Question"],
+        summary: "View question by ID",
+        description: "Fetch a single question record using questionId",
+        parameters: [
+          {
+            name: "questionId",
+            in: "query",
+            required: true,
+            schema: {
+              type: "string",
+            },
+            description: "The ID of the question",
+          },
+        ],
+        responses: {
+          200: {
+            description: "Question fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                    data: {
+                      type: "object",
+                      properties: {
+                        _id: {
+                          type: "string",
+                        },
+                        subject: {
+                          type: "string",
+                        },
+                        examYear: {
+                          type: "string",
+                        },
+                        orderId: {
+                          type: "integer",
+                        },
+                        ask: {
+                          type: "string",
+                        },
+                        option1: {
+                          type: "string",
+                        },
+                        option2: {
+                          type: "string",
+                        },
+                        option3: {
+                          type: "string",
+                        },
+                        option4: {
+                          type: "string",
+                        },
+                        answer: {
+                          type: "string",
+                        },
+                        score: {
+                          type: "integer",
+                        },
+                        createdAt: {
+                          type: "string",
+                        },
+                        updatedAt: {
+                          type: "string",
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "questionId is required",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: "Question not found",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Question/view-my-exam-profile": {
+      get: {
+        tags: ["Question"],
+        summary: "View candidate exam profile",
+        description:
+          "Fetch candidate profile and selected subjects using CandidateRegNo",
+        parameters: [
+          {
+            name: "CandidateRegNo",
+            in: "query",
+            required: true,
+            schema: {
+              type: "string",
+            },
+            description: "Candidate registration number",
+          },
+        ],
+        responses: {
+          200: {
+            description: "Exam profile fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                    data: {
+                      type: "object",
+                      properties: {
+                        candidate: {
+                          type: "object",
+                        },
+                        subjects: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              _id: { type: "string" },
+                              name: { type: "string" },
+                              shortCode: { type: "string" },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "CandidateRegNo is required",
+          },
+          404: {
+            description: "Candidate not found",
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Question/exam-questions": {
+      get: {
+        tags: ["Question"],
+        summary: "Get exam questions",
+        description:
+          "Fetch exam questions for a candidate using registration number, selected subject, and exam year",
+        parameters: [
+          {
+            name: "RegNo",
+            in: "query",
+            required: true,
+            schema: {
+              type: "string",
+            },
+            description: "Candidate registration number",
+          },
+          {
+            name: "ChoiceSubject",
+            in: "query",
+            required: true,
+            schema: {
+              type: "string",
+            },
+            description: "Selected exam subject",
+          },
+          {
+            name: "ExamYear",
+            in: "query",
+            required: true,
+            schema: {
+              type: "string",
+            },
+            description: "Exam year",
+          },
+        ],
+        responses: {
+          200: {
+            description: "Exam questions fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                    data: {
+                      type: "object",
+                      properties: {
+                        candidate: {
+                          type: "object",
+                          properties: {
+                            _id: { type: "string" },
+                            surname: { type: "string" },
+                            firstname: { type: "string" },
+                            otherName: { type: "string" },
+                            regNo: { type: "string" },
+                            userType: { type: "string" },
+                            role: { type: "string" },
+                          },
+                        },
+                        subject: {
+                          type: "string",
+                        },
+                        examYear: {
+                          type: "string",
+                        },
+                        totalQuestions: {
+                          type: "integer",
+                        },
+                        questions: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              _id: { type: "string" },
+                              subject: { type: "string" },
+                              examYear: { type: "string" },
+                              orderId: { type: "integer" },
+                              ask: { type: "string" },
+                              option1: { type: "string" },
+                              option2: { type: "string" },
+                              option3: { type: "string" },
+                              option4: { type: "string" },
+                              score: { type: "integer" },
+                              createdAt: { type: "string" },
+                              updatedAt: { type: "string" },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Missing required query parameters",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          403: {
+            description: "Candidate is not assigned to this subject",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: "Candidate not found or no questions found",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Question/delete-question": {
+      delete: {
+        tags: ["Question"],
+        summary: "Delete question",
+        description: "Deletes a question using questId",
+        parameters: [
+          {
+            name: "questId",
+            in: "query",
+            required: true,
+            schema: {
+              type: "string",
+              
+            },
+            description: "The ID of the question to delete",
+          },
+        ],
+        responses: {
+          200: {
+            description: "Question deleted successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      example: true,
+                    },
+                    message: {
+                      type: "string",
+                      example: "Question deleted successfully",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "questId is required",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: "Question not found",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Question/submit-exam": {
+      post: {
+        tags: ["Question"],
+        summary: "Submit exam answers",
+        description:
+          "Submits candidate answers for an exam and calculates the score",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    candidateId: {
+                      type: "string",
+                    },
+                    regNo: {
+                      type: "string",
+                    },
+                    questionId: {
+                      type: "string",
+                    },
+                    subject: {
+                      type: "string",
+                    },
+                    examYear: {
+                      type: "string",
+                    },
+                    orderId: {
+                      type: "integer",
+                    },
+                    submittedAnswer: {
+                      type: "string",
+                    },
+                  },
+                  required: [
+                    "candidateId",
+                    "regNo",
+                    "questionId",
+                    "subject",
+                    "examYear",
+                    "orderId",
+                    "submittedAnswer",
+                  ],
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Exam submitted successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                    data: {
+                      type: "object",
+                      properties: {
+                        candidateId: {
+                          type: "string",
+                        },
+                        regNo: {
+                          type: "string",
+                        },
+                        subject: {
+                          type: "string",
+                        },
+                        examYear: {
+                          type: "string",
+                        },
+                        totalQuestions: {
+                          type: "integer",
+                        },
+                        totalScore: {
+                          type: "integer",
+                        },
+                        results: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              candidateId: { type: "string" },
+                              regNo: { type: "string" },
+                              questionId: { type: "string" },
+                              subject: { type: "string" },
+                              examYear: { type: "string" },
+                              orderId: { type: "integer" },
+                              submittedAnswer: { type: "string" },
+                              correctAnswer: { type: "string" },
+                              isCorrect: { type: "boolean" },
+                              scoreAwarded: { type: "integer" },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Validation error",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: "Question not found",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Home/admin-home": {
+      get: {
+        tags: ["Home"],
+        summary: "Get admin dashboard summary",
+        description: "Fetch dashboard statistics for admin home page",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: "Admin home data fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    succeeded: {
+                      type: "boolean",
+                      example: true,
+                    },
+                    responseCode: {
+                      nullable: true,
+                      example: null,
+                    },
+                    code: {
+                      type: "integer",
+                    },
+                    message: {
+                      type: "string",
+                    },
+                    errors: {
+                      nullable: true,
+                      example: null,
+                    },
+                    data: {
+                      type: "object",
+                      properties: {
+                        tutorCount: {
+                          type: "integer",
+                        },
+                        maleCount: {
+                          type: "integer",
+                        },
+                        femaleCount: {
+                          type: "integer",
+                        },
+                        totalCount: {
+                          type: "integer",
+                        },
+                        monthlyResult: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              year: {
+                                type: "string",
+                              },
+                              month: {
+                                type: "integer",
+                              },
+                              monthName: {
+                                type: "string",
+                              },
+                              maxScore: {
+                                type: "integer",
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Unauthorized",
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Home/tutor-home": {
+      get: {
+        tags: ["Home"],
+        summary: "Get tutor dashboard summary",
+        description: "Fetch dashboard statistics for tutor home page",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: "Tutor home data fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    succeeded: {
+                      type: "boolean",
+                      example: true,
+                    },
+                    responseCode: {
+                      nullable: true,
+                      example: null,
+                    },
+                    code: {
+                      type: "integer",
+                    },
+                    message: {
+                      type: "string",
+                      example: "Success",
+                    },
+                    errors: {
+                      nullable: true,
+                      example: null,
+                    },
+                    data: {
+                      type: "object",
+                      properties: {
+                        maleCount: {
+                          type: "integer",
+                        },
+                        femaleCount: {
+                          type: "integer",
+                        },
+                        totalCount: {
+                          type: "integer",
+                        },
+                        monthlyResult: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              year: {
+                                type: "string",
+                              },
+                              month: {
+                                type: "integer",
+                              },
+                              monthName: {
+                                type: "string",
+                              },
+                              maxScore: {
+                                type: "integer",
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Unauthorized",
+          },
+          500: {
+            description: "Server error",
+          },
+        },
+      },
+    },
+    "/api/Home/candidate-home": {
+      get: {
+        tags: ["Home"],
+        summary: "Get candidate dashboard data",
+        description:
+          "Fetch monthly exam performance data for candidate dashboard",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: "Candidate home data fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    succeeded: {
+                      type: "boolean",
+                      example: true,
+                    },
+                    responseCode: {
+                      nullable: true,
+                      example: null,
+                    },
+                    code: {
+                      type: "integer",
+                      example: 0,
+                    },
+                    message: {
+                      type: "string",
+                      example: "Success",
+                    },
+                    errors: {
+                      nullable: true,
+                      example: null,
+                    },
+                    data: {
+                      type: "object",
+                      properties: {
+                        monthlyResult: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              year: {
+                                type: "string",
+                              },
+                              month: {
+                                type: "integer",
+                              },
+                              monthName: {
+                                type: "string",
+                              },
+                              maxScore: {
+                                type: "integer",
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Unauthorized",
           },
           500: {
             description: "Server error",

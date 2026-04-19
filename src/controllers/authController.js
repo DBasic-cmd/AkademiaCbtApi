@@ -4,18 +4,16 @@ const Question = require("../models/Question");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-
-
 exports.login = async (req, res) => {
   try {
     // 1. Destructure 'email' instead of 'username'
     const { email, password, role } = req.body;
-    
+
     const systemIp =
       req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress;
 
     // 2. Find the user by email
-    const user = await User.findOne({ email: email.toLowerCase() }); 
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     // 3. Role check (Ensures an Admin isn't logging in through a Candidate portal)
@@ -312,7 +310,10 @@ exports.editAdminUser = async (req, res) => {
 exports.getAdminDetailsById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    if (!user || user.role !== 'Admin') return res.status(404).json({ succeeded: false, message: "Admin not found" });
+    if (!user || user.role !== "Admin")
+      return res
+        .status(404)
+        .json({ succeeded: false, message: "Admin not found" });
 
     res.json({
       succeeded: true,
@@ -334,10 +335,12 @@ exports.getAdminDetailsById = async (req, res) => {
         isDelete: user.isDelete,
         createdBy: user.createdBy,
         createdDate: user.createdDate,
-        image: user.image
-      }
+        image: user.image,
+      },
     });
-  } catch (err) { res.status(500).json({ succeeded: false, error: err.message }); }
+  } catch (err) {
+    res.status(500).json({ succeeded: false, error: err.message });
+  }
 };
 exports.newTutor = async (req, res) => {
   try {
@@ -500,7 +503,10 @@ exports.editTutorUser = async (req, res) => {
 exports.getTutorDetailsById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    if (!user || user.role !== 'Tutor') return res.status(404).json({ succeeded: false, message: "Tutor not found" });
+    if (!user || user.role !== "Tutor")
+      return res
+        .status(404)
+        .json({ succeeded: false, message: "Tutor not found" });
 
     res.json({
       succeeded: true,
@@ -520,10 +526,12 @@ exports.getTutorDetailsById = async (req, res) => {
         image: user.image,
         address: user.address,
         passport: user.passport,
-        tutorSubjs: user.tutorSubjs
-      }
+        tutorSubjs: user.tutorSubjs,
+      },
     });
-  } catch (err) { res.status(500).json({ succeeded: false, error: err.message }); }
+  } catch (err) {
+    res.status(500).json({ succeeded: false, error: err.message });
+  }
 };
 exports.newCandidate = async (req, res) => {
   try {
@@ -696,7 +704,10 @@ exports.editCandidateUser = async (req, res) => {
 exports.getCandidateDetailsById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    if (!user || user.role !== 'Candidate') return res.status(404).json({ succeeded: false, message: "Candidate not found" });
+    if (!user || user.role !== "Candidate")
+      return res
+        .status(404)
+        .json({ succeeded: false, message: "Candidate not found" });
 
     res.json({
       succeeded: true,
@@ -717,10 +728,12 @@ exports.getCandidateDetailsById = async (req, res) => {
         passport: user.passport,
         dateOfBirth: user.dateOfBirth,
         tenant: user.tenant,
-        image: user.image
-      }
+        image: user.image,
+      },
     });
-  } catch (err) { res.status(500).json({ succeeded: false, error: err.message }); }
+  } catch (err) {
+    res.status(500).json({ succeeded: false, error: err.message });
+  }
 };
 
 exports.addSubject = async (req, res) => {
@@ -1228,6 +1241,588 @@ exports.getTutorList = async (req, res) => {
     res.status(500).json({
       success: false,
       error: err.message,
+    });
+  }
+};
+exports.bulkQuestion = async (req, res) => {
+  try {
+    const questions = req.body;
+
+    if (!Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Request body must be a non-empty array of questions",
+      });
+    }
+
+    const preparedQuestions = [];
+
+    for (let i = 0; i < questions.length; i++) {
+      const item = questions[i];
+
+      const {
+        subject,
+        examYear,
+        orderId,
+        ask,
+        option1,
+        option2,
+        option3,
+        option4,
+        answer,
+        score,
+      } = item;
+
+      if (
+        !subject ||
+        !examYear ||
+        orderId === undefined ||
+        !ask ||
+        !option1 ||
+        !option2 ||
+        !option3 ||
+        !option4 ||
+        !answer ||
+        score === undefined
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: `All fields are required for item at index ${i}`,
+        });
+      }
+
+      const subjectExists = await Subject.findOne({ name: subject.trim() });
+
+      if (!subjectExists) {
+        return res.status(404).json({
+          success: false,
+          message: `Subject not found for item at index ${i}: ${subject}`,
+        });
+      }
+
+      const options = [
+        option1.trim(),
+        option2.trim(),
+        option3.trim(),
+        option4.trim(),
+      ];
+
+      if (!options.includes(answer.trim())) {
+        return res.status(400).json({
+          success: false,
+          message: `Answer must match one of the options for item at index ${i}`,
+        });
+      }
+
+      preparedQuestions.push({
+        subject: subject.trim(),
+        examYear: examYear.trim(),
+        orderId,
+        ask: ask.trim(),
+        option1: option1.trim(),
+        option2: option2.trim(),
+        option3: option3.trim(),
+        option4: option4.trim(),
+        answer: answer.trim(),
+        score,
+      });
+    }
+
+    const insertedQuestions = await Question.insertMany(preparedQuestions);
+
+    res.status(201).json({
+      success: true,
+      message: "Questions uploaded successfully",
+      totalUploaded: insertedQuestions.length,
+      data: insertedQuestions,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+};
+exports.getQuestionList = async (req, res) => {
+  try {
+    let { PageNo, PageSize, ExamYear, Subject } = req.query;
+
+    PageNo = parseInt(PageNo, 10) || 1;
+    PageSize = parseInt(PageSize, 10) || 10;
+
+    if (PageNo < 1 || PageSize < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "PageNo and PageSize must be greater than 0",
+      });
+    }
+
+    const filter = {};
+
+    if (ExamYear) {
+      filter.examYear = ExamYear.trim();
+    }
+
+    if (Subject) {
+      filter.subject = { $regex: Subject.trim(), $options: "i" };
+    }
+
+    const totalRecords = await Question.countDocuments(filter);
+
+    const questions = await Question.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((PageNo - 1) * PageSize)
+      .limit(PageSize);
+
+    res.status(200).json({
+      success: true,
+      message: "Questions fetched successfully",
+      data: questions,
+      pagination: {
+        pageNo: PageNo,
+        pageSize: PageSize,
+        totalRecords,
+        totalPages: Math.ceil(totalRecords / PageSize),
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+};
+exports.viewBulkQuestion = async (req, res) => {
+  try {
+    const { questionId } = req.query;
+
+    if (!questionId) {
+      return res.status(400).json({
+        success: false,
+        message: "questionId is required",
+      });
+    }
+
+    const question = await Question.findById(questionId);
+
+    if (!question) {
+      return res.status(404).json({
+        success: false,
+        message: "Question not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Question fetched successfully",
+      data: question,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+};
+exports.viewMyExamProfile = async (req, res) => {
+  try {
+    const { CandidateRegNo } = req.query;
+
+    if (!CandidateRegNo) {
+      return res.status(400).json({
+        success: false,
+        message: "CandidateRegNo is required",
+      });
+    }
+
+    // Find candidate by RegNo
+    const candidate = await User.findOne({
+      $and: [
+        { $or: [{ role: "Candidate" }, { userType: "Candidate" }] },
+        { regNo: CandidateRegNo }, // adjust field name if needed
+      ],
+    }).select("-password");
+
+    if (!candidate) {
+      return res.status(404).json({
+        success: false,
+        message: "Candidate not found",
+      });
+    }
+
+    // Optional: fetch subject details if IDs are stored
+    let subjects = [];
+
+    if (
+      Array.isArray(candidate.selectedSubjs) &&
+      candidate.selectedSubjs.length
+    ) {
+      subjects = await Subject.find({
+        _id: { $in: candidate.selectedSubjs },
+      }).select("name shortCode");
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Exam profile fetched successfully",
+      data: {
+        candidate,
+        subjects,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+};
+exports.getExamQuestions = async (req, res) => {
+  try {
+    const { RegNo, ChoiceSubject, ExamYear } = req.query;
+    const now = new Date();
+
+    // 1. Find an active scheduled exam for this subject and year
+    const activeExam = await Exam.findOne({
+      subject: ChoiceSubject,
+      examYear: ExamYear,
+      startTime: { $lte: now }, // Exam has started
+      endTime: { $gte: now }    // Exam has not ended
+    });
+
+    if (!activeExam) {
+      return res.status(403).json({
+        success: false,
+        message: "This exam is not available at this time. Please check your schedule."
+      });
+    }
+
+    // 2. Verify Candidate (Keep your existing RegNo and subject authorization logic here)
+    const candidate = await User.findOne({ regNo: RegNo });
+    if (!candidate) return res.status(404).json({ message: "Candidate not found" });
+
+    // 3. Fetch the questions (as you already did)
+    const questions = await Question.find({
+      subject: ChoiceSubject,
+      examYear: ExamYear
+    }).select("-answer");
+
+    res.status(200).json({
+      success: true,
+      examDetails: {
+        title: activeExam.title,
+        endTime: activeExam.endTime,
+        duration: activeExam.duration
+      },
+      questions
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+exports.scheduleExam = async (req, res) => {
+  try {
+    const { title, subject, examYear, startTime, endTime, duration } = req.body;
+
+    // 1. Validation: Future date check
+    if (new Date(startTime) <= new Date()) {
+      return res.status(400).json({ message: "Start time must be in the future." });
+    }
+
+    // 2. Ensure questions actually exist for this subject/year before scheduling
+    const questionCount = await Question.countDocuments({ subject, examYear });
+    if (questionCount === 0) {
+      return res.status(404).json({ 
+        message: `No questions found for ${subject} (${examYear}). Add questions first.` 
+      });
+    }
+
+    const newExam = await Exam.create({
+      title,
+      subject,
+      examYear,
+      startTime,
+      endTime,
+      duration,
+      teacherId: req.user.id,
+    });
+
+    res.status(201).json({ success: true, data: newExam });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+exports.getTeacherScheduledExams = async (req, res) => {
+  const now = new Date();
+  const scheduled = await Exam.find({
+    teacherId: req.user.id,
+    endTime: { $gt: now }, // Any exam that hasn't finished yet
+  }).sort({ startTime: 1 }); // Sort by soonest first
+
+  res.json(scheduled);
+};
+exports.deleteQuestion = async (req, res) => {
+  try {
+    const { questId } = req.query;
+
+    if (!questId) {
+      return res.status(400).json({
+        success: false,
+        message: "questId is required",
+      });
+    }
+
+    const question = await Question.findById(questId);
+
+    if (!question) {
+      return res.status(404).json({
+        success: false,
+        message: "Question not found",
+      });
+    }
+
+    await Question.findByIdAndDelete(questId);
+
+    res.status(200).json({
+      success: true,
+      message: "Question deleted successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+};
+exports.submitExam = async (req, res) => {
+  try {
+    const submissions = req.body;
+
+    if (!Array.isArray(submissions) || submissions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Request body must be a non-empty array",
+      });
+    }
+
+    const results = [];
+    let totalScore = 0;
+
+    for (let i = 0; i < submissions.length; i++) {
+      const item = submissions[i];
+
+      const {
+        candidateId,
+        regNo,
+        questionId,
+        subject,
+        examYear,
+        orderId,
+        submittedAnswer,
+      } = item;
+
+      if (
+        !candidateId ||
+        !regNo ||
+        !questionId ||
+        !subject ||
+        !examYear ||
+        orderId === undefined ||
+        !submittedAnswer
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: `All fields are required for item at index ${i}`,
+        });
+      }
+
+      const question = await Question.findById(questionId);
+
+      if (!question) {
+        return res.status(404).json({
+          success: false,
+          message: `Question not found for item at index ${i}`,
+        });
+      }
+
+      // Extra safety checks so people don't submit nonsense
+      if (question.subject.toLowerCase() !== subject.trim().toLowerCase()) {
+        return res.status(400).json({
+          success: false,
+          message: `Subject mismatch for item at index ${i}`,
+        });
+      }
+
+      if (question.examYear !== examYear.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: `Exam year mismatch for item at index ${i}`,
+        });
+      }
+
+      if (question.orderId !== orderId) {
+        return res.status(400).json({
+          success: false,
+          message: `Order ID mismatch for item at index ${i}`,
+        });
+      }
+
+      const isCorrect =
+        question.answer.trim().toLowerCase() ===
+        submittedAnswer.trim().toLowerCase();
+
+      const earnedScore = isCorrect ? Number(question.score || 0) : 0;
+      totalScore += earnedScore;
+
+      results.push({
+        candidateId,
+        regNo,
+        questionId,
+        subject,
+        examYear,
+        orderId,
+        submittedAnswer,
+        correctAnswer: question.answer,
+        isCorrect,
+        scoreAwarded: earnedScore,
+      });
+    }
+
+    const firstSubmission = submissions[0];
+
+    res.status(200).json({
+      success: true,
+      message: "Exam submitted successfully",
+      data: {
+        candidateId: firstSubmission.candidateId,
+        regNo: firstSubmission.regNo,
+        subject: firstSubmission.subject,
+        examYear: firstSubmission.examYear,
+        totalQuestions: submissions.length,
+        totalScore,
+        results,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+  const exam = await Exam.findOne({ subject, examYear });
+if (new Date() > new Date(exam.endTime)) {
+  return res.status(403).json({ 
+    success: false, 
+    message: "Submission rejected: Exam time has expired." 
+  });
+}
+};
+exports.adminHome = async (req, res) => {
+  try {
+    const tutorCount = await User.countDocuments({
+      $or: [{ role: "Tutor" }, { userType: "Tutor" }],
+    });
+
+    const maleCount = await User.countDocuments({
+      $or: [{ role: "Candidate" }, { userType: "Candidate" }],
+      gender: { $regex: "^male$", $options: "i" },
+    });
+
+    const femaleCount = await User.countDocuments({
+      $or: [{ role: "Candidate" }, { userType: "Candidate" }],
+      gender: { $regex: "^female$", $options: "i" },
+    });
+
+    const totalCount = await User.countDocuments({
+      $or: [{ role: "Candidate" }, { userType: "Candidate" }],
+    });
+
+    res.status(200).json({
+      succeeded: true,
+      responseCode: null,
+      code: 0,
+      message: "Success",
+      errors: null,
+      data: {
+        tutorCount,
+        maleCount,
+        femaleCount,
+        totalCount,
+        monthlyResult: [],
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      succeeded: false,
+      responseCode: null,
+      code: 1,
+      message: "An error occurred",
+      errors: [err.message],
+      data: null,
+    });
+  }
+};
+exports.tutorHome = async (req, res) => {
+  try {
+    const maleCount = await User.countDocuments({
+      $or: [{ role: "Candidate" }, { userType: "Candidate" }],
+      gender: { $regex: "^male$", $options: "i" },
+    });
+
+    const femaleCount = await User.countDocuments({
+      $or: [{ role: "Candidate" }, { userType: "Candidate" }],
+      gender: { $regex: "^female$", $options: "i" },
+    });
+
+    const totalCount = await User.countDocuments({
+      $or: [{ role: "Candidate" }, { userType: "Candidate" }],
+    });
+
+    res.status(200).json({
+      succeeded: true,
+      responseCode: null,
+      code: 0,
+      message: "Success",
+      errors: null,
+      data: {
+        maleCount,
+        femaleCount,
+        totalCount,
+        monthlyResult: [],
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      succeeded: false,
+      responseCode: null,
+      code: 1,
+      message: "An error occurred",
+      errors: [err.message],
+      data: null,
+    });
+  }
+};
+exports.candidateHome = async (req, res) => {
+  try {
+    res.status(200).json({
+      succeeded: true,
+      responseCode: null,
+      code: 0,
+      message: "Success",
+      errors: null,
+      data: {
+        monthlyResult: [],
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      succeeded: false,
+      responseCode: null,
+      code: 1,
+      message: "An error occurred",
+      errors: [err.message],
+      data: null,
     });
   }
 };
