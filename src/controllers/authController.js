@@ -309,11 +309,16 @@ exports.editAdminUser = async (req, res) => {
 };
 exports.getAdminDetailsById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user || user.role !== "Admin")
-      return res
-        .status(404)
-        .json({ succeeded: false, message: "Admin not found" });
+    const { UserId, UserType } = req.query;
+
+    const user = await User.findById(UserId);
+
+    if (!user || user.role !== "Admin") {
+      return res.status(404).json({
+        succeeded: false,
+        message: "Admin not found",
+      });
+    }
 
     res.json({
       succeeded: true,
@@ -339,7 +344,10 @@ exports.getAdminDetailsById = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ succeeded: false, error: err.message });
+    res.status(500).json({
+      succeeded: false,
+      error: err.message,
+    });
   }
 };
 exports.newTutor = async (req, res) => {
