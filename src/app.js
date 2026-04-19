@@ -526,7 +526,7 @@ const swaggerDocument = {
         },
       },
     },
-    "/api/User/admin-details-by-id": {
+    "/api/User/get-admin-details-by-id": {
       get: {
         tags: ["User"],
         summary: "Get Admin details by ID",
