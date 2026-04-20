@@ -562,7 +562,6 @@ exports.newCandidate = async (req, res) => {
     const systemIp =
       req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress;
 
-    // Restrict to Candidate creation only
     if (userType !== "Candidate") {
       return res.status(403).json({
         success: false,
@@ -570,7 +569,6 @@ exports.newCandidate = async (req, res) => {
       });
     }
 
-    // Check existing email
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -588,13 +586,15 @@ exports.newCandidate = async (req, res) => {
       password: hashedPassword,
       surname,
       firstname,
+      otherName,
       gender,
       phoneNo,
       email,
       birthday,
       tenant,
       passport,
-      selectedSubjects,
+      physicalChallenge,
+      selectedSubjects: selectedSubjs,
       registrationIp: systemIp,
     });
 
