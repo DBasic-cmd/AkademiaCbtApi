@@ -584,6 +584,7 @@ exports.newCandidate = async (req, res) => {
       userType: "Candidate",
       role: "Candidate",
       password: hashedPassword,
+      username: email,
       surname,
       firstname,
       otherName,
@@ -606,6 +607,7 @@ exports.newCandidate = async (req, res) => {
       userId: candidate._id,
     });
   } catch (err) {
+    console.error('Error in newCandidate:', err);
     res.status(500).json({
       success: false,
       error: err.message,

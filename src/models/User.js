@@ -3,6 +3,8 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['Admin', 'Candidate', 'Tutor'], required: true },
+  userType: { type: String },
+  username: { type: String },
   
   // Shared Fields
   surname: { type: String },
@@ -13,6 +15,9 @@ const UserSchema = new mongoose.Schema({
   passport: { type: String, default: null },
   tenant: { type: String },
   address: { type: String },
+  birthday: { type: String },
+  selectedSubjects: { type: [String], default: [] },
+  registrationIp: { type: String },
   
   // Tutor Specific
   staffId: { type: String },
