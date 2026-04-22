@@ -584,7 +584,7 @@ exports.newCandidate = async (req, res) => {
       userType: "Candidate",
       role: "Candidate",
       password: hashedPassword,
-      username: email,
+      username: `${firstname} ${surname}`.trim(),
       surname,
       firstname,
       otherName,
