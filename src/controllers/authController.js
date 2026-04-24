@@ -713,11 +713,23 @@ exports.editCandidateUser = async (req, res) => {
 };
 exports.getCandidateDetailsById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user || user.role !== "Candidate")
-      return res
-        .status(404)
-        .json({ succeeded: false, message: "Candidate not found" });
+    const { UserId } = req.query;
+
+    if (!UserId) {
+      return res.status(400).json({
+        succeeded: false,
+        message: "UserId is required",
+      });
+    }
+
+    const user = await User.findById(UserId);
+
+    if (!user || user.role !== "Candidate") {
+      return res.status(404).json({
+        succeeded: false,
+        message: "Candidate not found",
+      });
+    }
 
     res.json({
       succeeded: true,
@@ -729,20 +741,24 @@ exports.getCandidateDetailsById = async (req, res) => {
         id: user._id,
         regNo: user.regNo,
         surname: user.surname,
-        firstName: user.firstname, // Note the capital N for Candidate
+        firstName: user.firstname,
         otherName: user.otherName,
         physicalChallenge: user.physicalChallenge,
         gender: user.gender,
         phoneNo: user.phoneNo,
         email: user.email,
         passport: user.passport,
-        dateOfBirth: user.dateOfBirth,
+        dateOfBirth: user.dateOfBirth || user.birthday,
         tenant: user.tenant,
         image: user.image,
+        selectedSubjects: user.selectedSubjects || [],
       },
     });
   } catch (err) {
-    res.status(500).json({ succeeded: false, error: err.message });
+    res.status(500).json({
+      succeeded: false,
+      error: err.message,
+    });
   }
 };
 
