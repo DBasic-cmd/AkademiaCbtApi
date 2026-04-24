@@ -367,6 +367,9 @@ exports.newTutor = async (req, res) => {
       selectedSubjects,
     } = req.body;
 
+    const DEFAULT_PASSWORD = "AkadaPassword#2!";
+    const finalPassword = password || DEFAULT_PASSWORD;
+
     const systemIp =
       req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress;
 
@@ -388,7 +391,7 @@ exports.newTutor = async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(finalPassword, 12);
 
     const tutor = new User({
       userType: "Tutor",
@@ -559,6 +562,9 @@ exports.newCandidate = async (req, res) => {
       selectedSubjs,
     } = req.body;
 
+    const DEFAULT_PASSWORD = "AkadaPassword#2!";
+    const finalPassword = password || DEFAULT_PASSWORD;
+
     const systemIp =
       req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress;
 
@@ -578,7 +584,7 @@ exports.newCandidate = async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(finalPassword, 12);
     let normalizedSubjects = selectedSubjs || [];
 
     if (typeof normalizedSubjects === "string") {
