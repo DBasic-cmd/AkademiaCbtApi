@@ -53,7 +53,7 @@ router.get("/get-tutor-details-by-id", authMiddleware, adminOnly, getTutorDetail
 router.post("/new-candidate", authMiddleware, adminOnly, newCandidate);
 router.delete("/delete-user", authMiddleware, adminOnly, deleteUser);
 router.post("/edit-candidate-user", authMiddleware, adminOnly, editCandidateUser);
-router.get("/candidate-details-by-id", authMiddleware, adminOnly, getCandidateDetailsById);
+router.get("/candidate-details-by-id", authMiddleware, getCandidateDetailsById);
 router.post("/add-subject", authMiddleware, adminOnly, addSubject);
 router.post("/edit-subject", authMiddleware, adminOnly, editSubject);
 router.get("/get-subject-list", authMiddleware, adminOnly, getSubjectList);
