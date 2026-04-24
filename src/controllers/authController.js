@@ -579,12 +579,31 @@ exports.newCandidate = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
+    let normalizedSubjects = selectedSubjs || [];
+
+    if (typeof normalizedSubjects === "string") {
+      normalizedSubjects = normalizedSubjects.split(",");
+    }
+
+    if (Array.isArray(normalizedSubjects)) {
+      normalizedSubjects = normalizedSubjects.flatMap((item) => {
+        if (typeof item === "string") {
+          return item
+            .replace(/"/g, "")
+            .split(",")
+            .map((id) => id.trim())
+            .filter(Boolean);
+        }
+
+        return item;
+      });
+    }
 
     const candidate = new User({
       userType: "Candidate",
       role: "Candidate",
       password: hashedPassword,
-      username: `${firstname} ${surname}`.trim(),
+      username: email,
       surname,
       firstname,
       otherName,
@@ -595,7 +614,7 @@ exports.newCandidate = async (req, res) => {
       tenant,
       passport,
       physicalChallenge,
-      selectedSubjects: selectedSubjs,
+      selectedSubjects: normalizedSubjects,
       registrationIp: systemIp,
     });
 
@@ -607,7 +626,7 @@ exports.newCandidate = async (req, res) => {
       userId: candidate._id,
     });
   } catch (err) {
-    console.error('Error in newCandidate:', err);
+    console.error("Error in newCandidate:", err);
     res.status(500).json({
       success: false,
       error: err.message,
@@ -1513,24 +1532,26 @@ exports.getExamQuestions = async (req, res) => {
       subject: ChoiceSubject,
       examYear: ExamYear,
       startTime: { $lte: now }, // Exam has started
-      endTime: { $gte: now }    // Exam has not ended
+      endTime: { $gte: now }, // Exam has not ended
     });
 
     if (!activeExam) {
       return res.status(403).json({
         success: false,
-        message: "This exam is not available at this time. Please check your schedule."
+        message:
+          "This exam is not available at this time. Please check your schedule.",
       });
     }
 
     // 2. Verify Candidate (Keep your existing RegNo and subject authorization logic here)
     const candidate = await User.findOne({ regNo: RegNo });
-    if (!candidate) return res.status(404).json({ message: "Candidate not found" });
+    if (!candidate)
+      return res.status(404).json({ message: "Candidate not found" });
 
     // 3. Fetch the questions (as you already did)
     const questions = await Question.find({
       subject: ChoiceSubject,
-      examYear: ExamYear
+      examYear: ExamYear,
     }).select("-answer");
 
     res.status(200).json({
@@ -1538,11 +1559,10 @@ exports.getExamQuestions = async (req, res) => {
       examDetails: {
         title: activeExam.title,
         endTime: activeExam.endTime,
-        duration: activeExam.duration
+        duration: activeExam.duration,
       },
-      questions
+      questions,
     });
-
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -1553,14 +1573,16 @@ exports.scheduleExam = async (req, res) => {
 
     // 1. Validation: Future date check
     if (new Date(startTime) <= new Date()) {
-      return res.status(400).json({ message: "Start time must be in the future." });
+      return res
+        .status(400)
+        .json({ message: "Start time must be in the future." });
     }
 
     // 2. Ensure questions actually exist for this subject/year before scheduling
     const questionCount = await Question.countDocuments({ subject, examYear });
     if (questionCount === 0) {
-      return res.status(404).json({ 
-        message: `No questions found for ${subject} (${examYear}). Add questions first.` 
+      return res.status(404).json({
+        message: `No questions found for ${subject} (${examYear}). Add questions first.`,
       });
     }
 
@@ -1737,12 +1759,12 @@ exports.submitExam = async (req, res) => {
     });
   }
   const exam = await Exam.findOne({ subject, examYear });
-if (new Date() > new Date(exam.endTime)) {
-  return res.status(403).json({ 
-    success: false, 
-    message: "Submission rejected: Exam time has expired." 
-  });
-}
+  if (new Date() > new Date(exam.endTime)) {
+    return res.status(403).json({
+      success: false,
+      message: "Submission rejected: Exam time has expired.",
+    });
+  }
 };
 exports.adminHome = async (req, res) => {
   try {
