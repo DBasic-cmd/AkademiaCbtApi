@@ -667,6 +667,7 @@ const swaggerDocument = {
                   "password",
                   "surname",
                   "firstname",
+                  "address",
                   "gender",
                   "phoneNo",
                   "email",
@@ -896,7 +897,7 @@ const swaggerDocument = {
         },
       },
     },
-    "/api/User/tutor-details-by-id": {
+    "/api/User/get-tutor-details-by-id": {
       get: {
         tags: ["User"],
         summary: "Get Tutor details by ID",
