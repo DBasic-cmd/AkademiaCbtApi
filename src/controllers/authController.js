@@ -367,6 +367,8 @@ exports.newTutor = async (req, res) => {
       selectedSubjects,
     } = req.body;
 
+    
+
     const DEFAULT_PASSWORD = "AkadaPassword#2!";
     const finalPassword = password || DEFAULT_PASSWORD;
 

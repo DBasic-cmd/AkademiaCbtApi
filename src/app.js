@@ -3176,6 +3176,8 @@ const authRoutes = require("./routes/authRoutes");
 app.use("/api/auth", authRoutes);
 app.use("/api/User", authRoutes); // Only if these methods are in the same file
 app.use("/api/Subject", authRoutes);
+app.use("/api/Question", authRoutes);
+app.use("/api/Home", authRoutes);
 
 // Basic route to test
 app.get("/", (req, res) => {
