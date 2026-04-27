@@ -514,11 +514,23 @@ exports.editTutorUser = async (req, res) => {
 };
 exports.getTutorDetailsById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user || user.role !== "Tutor")
-      return res
-        .status(404)
-        .json({ succeeded: false, message: "Tutor not found" });
+    const { UserId } = req.query;
+
+    if (!UserId) {
+      return res.status(400).json({
+        succeeded: false,
+        message: "UserId is required",
+      });
+    }
+
+    const user = await User.findById(UserId);
+
+    if (!user || user.role !== "Tutor") {
+      return res.status(404).json({
+        succeeded: false,
+        message: "Tutor not found",
+      });
+    }
 
     res.json({
       succeeded: true,
@@ -535,10 +547,10 @@ exports.getTutorDetailsById = async (req, res) => {
         email: user.email,
         gender: user.gender,
         tenant: user.tenant,
-        image: user.image,
+        image: user.image || user.passport || "",
         address: user.address,
         passport: user.passport,
-        tutorSubjs: user.tutorSubjs,
+        selectedSubjects: user.selectedSubjects || [],
       },
     });
   } catch (err) {
