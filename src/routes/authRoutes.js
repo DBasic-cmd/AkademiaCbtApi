@@ -49,7 +49,7 @@ router.post("/change-password", authMiddleware, changePassword);
 router.get("/get-admin-details-by-id", authMiddleware, adminOnly, getAdminDetailsById);
 router.post("/new-tutor", authMiddleware, adminOnly, newTutor);
 router.post("/edit-tutor-user", authMiddleware, adminOnly, editTutorUser);
-router.get("/get-tutor-details-by-id", authMiddleware, adminOnly, tutorOnly, getTutorDetailsById);
+router.get("/get-tutor-details-by-id", authMiddleware, getTutorDetailsById);
 router.post("/new-candidate", authMiddleware, adminOnly, newCandidate);
 router.delete("/delete-user", authMiddleware, adminOnly, deleteUser);
 router.post("/edit-candidate-user", authMiddleware, adminOnly, editCandidateUser);
