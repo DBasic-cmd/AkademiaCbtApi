@@ -1007,7 +1007,7 @@ exports.deleteSubject = async (req, res) => {
     });
   }
 };
-exports.createQuestion = async (req, res) => {
+exports.newQuestion = async (req, res) => {
   try {
     const {
       subject,
