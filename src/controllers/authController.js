@@ -399,6 +399,7 @@ exports.newTutor = async (req, res) => {
       password: hashedPassword,
       surname,
       firstname,
+      username: email,
       gender,
       phoneNo,
       email,
