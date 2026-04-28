@@ -370,8 +370,6 @@ exports.newTutor = async (req, res) => {
       selectedSubjects,
     } = req.body;
 
-    
-
     const DEFAULT_PASSWORD = "AkadaPassword#2!";
     const finalPassword = password || DEFAULT_PASSWORD;
 
@@ -1443,7 +1441,15 @@ exports.getQuestionList = async (req, res) => {
         });
       }
 
-      const assignedSubjectIds = tutor.selectedSubjects || [];
+      const assignedSubjectIds = Array.isArray(tutor.selectedSubjects)
+        ? tutor.selectedSubjects.filter(Boolean)
+        : [];
+      if (!assignedSubjectIds.length) {
+        return res.status(403).json({
+          success: false,
+          message: "You have not been assigned to any subject",
+        });
+      }
 
       const assignedSubjects = await Subject.find({
         _id: { $in: assignedSubjectIds },
@@ -1499,6 +1505,7 @@ exports.getQuestionList = async (req, res) => {
       error: err.message,
     });
   }
+  console.error("getQuestionList error:", err);
 };
 exports.viewBulkQuestion = async (req, res) => {
   try {
