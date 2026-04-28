@@ -4,6 +4,9 @@ const Question = require("../models/Question");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+console.log("Subject.find:", typeof Subject.find);
+console.log("Question.find:", typeof Question.find);
+
 exports.login = async (req, res) => {
   try {
     // 1. Destructure 'email' instead of 'username'
