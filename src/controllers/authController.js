@@ -1429,8 +1429,47 @@ exports.getQuestionList = async (req, res) => {
       filter.examYear = ExamYear.trim();
     }
 
-    if (Subject) {
-      filter.subject = { $regex: Subject.trim(), $options: "i" };
+    // Tutor restriction
+    if (req.user?.role === "Tutor") {
+      const tutor = await User.findById(req.user.id || req.user._id);
+
+      if (!tutor) {
+        return res.status(404).json({
+          success: false,
+          message: "Tutor not found",
+        });
+      }
+
+      const assignedSubjectIds = tutor.selectedSubjects || [];
+
+      const assignedSubjects = await Subject.find({
+        _id: { $in: assignedSubjectIds },
+      }).select("name");
+
+      const allowedSubjectNames = assignedSubjects.map((s) => s.name);
+
+      if (!allowedSubjectNames.length) {
+        return res.status(403).json({
+          success: false,
+          message: "You have not been assigned to any subject",
+        });
+      }
+
+      if (Subject && !allowedSubjectNames.includes(Subject.trim())) {
+        return res.status(403).json({
+          success: false,
+          message: "You are not assigned to this subject",
+        });
+      }
+
+      filter.subject = Subject
+        ? { $regex: `^${Subject.trim()}$`, $options: "i" }
+        : { $in: allowedSubjectNames };
+    } else {
+      // Admin/default filtering
+      if (Subject) {
+        filter.subject = { $regex: Subject.trim(), $options: "i" };
+      }
     }
 
     const totalRecords = await Question.countDocuments(filter);
@@ -1440,7 +1479,7 @@ exports.getQuestionList = async (req, res) => {
       .skip((PageNo - 1) * PageSize)
       .limit(PageSize);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Questions fetched successfully",
       data: questions,
@@ -1452,7 +1491,7 @@ exports.getQuestionList = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: err.message,
     });
