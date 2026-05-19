@@ -320,13 +320,13 @@ exports.getAdminDetailsById = async (req, res) => {
 
     if (!user || user.role !== "Admin") {
       return res.status(404).json({
-        succeeded: false,
+        success: false,
         message: "Admin not found",
       });
     }
 
     res.json({
-      succeeded: true,
+      success: true,
       responseCode: null,
       code: 0,
       message: "Success",
@@ -350,7 +350,7 @@ exports.getAdminDetailsById = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({
-      succeeded: false,
+      success: false,
       error: err.message,
     });
   }
@@ -523,7 +523,7 @@ exports.getTutorDetailsById = async (req, res) => {
 
     if (!UserId) {
       return res.status(400).json({
-        succeeded: false,
+        success: false,
         message: "UserId is required",
       });
     }
@@ -532,13 +532,13 @@ exports.getTutorDetailsById = async (req, res) => {
 
     if (!user || user.role !== "Tutor") {
       return res.status(404).json({
-        succeeded: false,
+        success: false,
         message: "Tutor not found",
       });
     }
 
     res.json({
-      succeeded: true,
+      success: true,
       responseCode: null,
       code: 0,
       message: "Success",
@@ -559,7 +559,7 @@ exports.getTutorDetailsById = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ succeeded: false, error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 };
 exports.newCandidate = async (req, res) => {
@@ -772,7 +772,7 @@ exports.getCandidateDetailsById = async (req, res) => {
 
     if (!UserId) {
       return res.status(400).json({
-        succeeded: false,
+        success: false,
         message: "UserId is required",
       });
     }
@@ -781,13 +781,13 @@ exports.getCandidateDetailsById = async (req, res) => {
 
     if (!user || user.role !== "Candidate") {
       return res.status(404).json({
-        succeeded: false,
+        success: false,
         message: "Candidate not found",
       });
     }
 
     res.json({
-      succeeded: true,
+      success: true,
       responseCode: null,
       code: 0,
       message: "Success",
@@ -811,7 +811,7 @@ exports.getCandidateDetailsById = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({
-      succeeded: false,
+      success: false,
       error: err.message,
     });
   }
@@ -930,10 +930,10 @@ exports.getSubjectList = async (req, res) => {
     PageNo = parseInt(PageNo, 10) || 1;
     PageSize = parseInt(PageSize, 10) || 10;
 
-    if (PageNo < 1 || PageSize < 1) {
+    if (PageNo < 1 || (PageSize < 1 && PageSize !== -1)) {
       return res.status(400).json({
         success: false,
-        message: "PageNo and PageSize must be greater than 0",
+        message: "PageNo must be greater than 0, and PageSize must be greater than 0 or equal to -1",
       });
     }
 
@@ -1904,7 +1904,7 @@ exports.adminHome = async (req, res) => {
     });
 
     res.status(200).json({
-      succeeded: true,
+      success: true,
       responseCode: null,
       code: 0,
       message: "Success",
@@ -1919,7 +1919,7 @@ exports.adminHome = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({
-      succeeded: false,
+      success: false,
       responseCode: null,
       code: 1,
       message: "An error occurred",
@@ -1945,7 +1945,7 @@ exports.tutorHome = async (req, res) => {
     });
 
     res.status(200).json({
-      succeeded: true,
+      success: true,
       responseCode: null,
       code: 0,
       message: "Success",
@@ -1959,7 +1959,7 @@ exports.tutorHome = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({
-      succeeded: false,
+      success: false,
       responseCode: null,
       code: 1,
       message: "An error occurred",
@@ -1971,7 +1971,7 @@ exports.tutorHome = async (req, res) => {
 exports.candidateHome = async (req, res) => {
   try {
     res.status(200).json({
-      succeeded: true,
+      success: true,
       responseCode: null,
       code: 0,
       message: "Success",
@@ -1982,7 +1982,7 @@ exports.candidateHome = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({
-      succeeded: false,
+      success: false,
       responseCode: null,
       code: 1,
       message: "An error occurred",
