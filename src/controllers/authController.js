@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Counter = require("../models/Counter");
 const Subject = require("../models/Subject");
 const Question = require("../models/Question");
 const bcrypt = require("bcryptjs");
@@ -620,6 +621,16 @@ exports.newCandidate = async (req, res) => {
         return item;
       });
     }
+    // 1. Atomically find and increment the counter
+    const counter = await Counter.findOneAndUpdate(
+      { id: 'candidateRegNo' },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true } // Creates the document if it doesn't exist yet
+    );
+
+    // 2. Format the registration number (e.g., 5 -> "REG0005")
+    const paddedSeq = String(counter.seq).padStart(4, '0');
+    const registrationNumber = `REG${paddedSeq}`;
 
     const candidate = new User({
       userType: "Candidate",
@@ -638,6 +649,7 @@ exports.newCandidate = async (req, res) => {
       physicalChallenge,
       selectedSubjects: normalizedSubjects,
       registrationIp: systemIp,
+      regNo: registrationNumber,
     });
 
     await candidate.save();
@@ -646,6 +658,7 @@ exports.newCandidate = async (req, res) => {
       success: true,
       message: "Candidate created successfully",
       userId: candidate._id,
+      regNo: registrationNumber
     });
   } catch (err) {
     console.error("Error in newCandidate:", err);

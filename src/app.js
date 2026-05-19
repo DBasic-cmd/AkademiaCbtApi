@@ -1035,7 +1035,7 @@ const swaggerDocument = {
         },
         responses: {
           201: {
-            description: "Tutor created successfully",
+            description: "Candidate created successfully",
             content: {
               "application/json": {
                 schema: {

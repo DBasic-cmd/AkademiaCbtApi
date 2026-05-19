@@ -24,7 +24,7 @@ const UserSchema = new mongoose.Schema({
   tutorSubjs: { type: [Number], default: [] },
   
   // Candidate Specific
-  regNo: { type: String },
+  regNo: { type: String, unique: true, sparse: true },
   otherName: { type: String },
   physicalChallenge: { type: String },
   dateOfBirth: { type: String }, // Maps to birthday in your Admin model
