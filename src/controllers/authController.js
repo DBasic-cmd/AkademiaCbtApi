@@ -623,13 +623,13 @@ exports.newCandidate = async (req, res) => {
     }
     // 1. Atomically find and increment the counter
     const counter = await Counter.findOneAndUpdate(
-      { id: 'candidateRegNo' },
+      { id: "candidateRegNo" },
       { $inc: { seq: 1 } },
-      { new: true, upsert: true } // Creates the document if it doesn't exist yet
+      { new: true, upsert: true }, // Creates the document if it doesn't exist yet
     );
 
     // 2. Format the registration number (e.g., 5 -> "REG0005")
-    const paddedSeq = String(counter.seq).padStart(4, '0');
+    const paddedSeq = String(counter.seq).padStart(4, "0");
     const registrationNumber = `REG${paddedSeq}`;
 
     const candidate = new User({
@@ -658,7 +658,7 @@ exports.newCandidate = async (req, res) => {
       success: true,
       message: "Candidate created successfully",
       userId: candidate._id,
-      regNo: registrationNumber
+      regNo: registrationNumber,
     });
   } catch (err) {
     console.error("Error in newCandidate:", err);
@@ -1581,12 +1581,12 @@ exports.viewMyExamProfile = async (req, res) => {
     // Optional: fetch subject details if IDs are stored
     let subjects = [];
 
-    if (
-      Array.isArray(candidate.selectedSubjs) &&
-      candidate.selectedSubjs.length
-    ) {
+    const subjectIds =
+      candidate.selectedSubjects || candidate.selectedSubjs || [];
+
+    if (Array.isArray(subjectIds) && subjectIds.length > 0) {
       subjects = await Subject.find({
-        _id: { $in: candidate.selectedSubjs },
+        _id: { $in: subjectIds },
       }).select("name shortCode");
     }
 
