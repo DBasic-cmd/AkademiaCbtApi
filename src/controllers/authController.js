@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const Counter = require("../models/Counter");
 const Subject = require("../models/Subject");
+const Exam = require('../models/Exam');
 const Question = require("../models/Question");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
