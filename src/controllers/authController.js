@@ -1748,9 +1748,34 @@ exports.submitExam = async (req, res) => {
       });
     }
 
+    // 1. TIME WINDOW GATEKEEPER (Moved to the very top safely)
+    const firstSubmission = submissions[0];
+    const { subject, examYear } = firstSubmission;
+
+    if (!subject || !examYear) {
+      return res.status(400).json({
+        success: false,
+        message: "Subject and Exam Year must be specified in the submission metadata.",
+      });
+    }
+
+    // Check if the actual exam schedule exists and has expired
+    const exam = await Exam.findOne({
+      subject: { $regex: `^${subject.trim()}$`, $options: "i" },
+      examYear: examYear.trim(),
+    });
+
+    if (exam && new Date() > new Date(exam.endTime)) {
+      return res.status(403).json({
+        success: false,
+        message: "Submission rejected: The scheduled exam time window has expired.",
+      });
+    }
+
     const results = [];
     let totalScore = 0;
 
+    // 2. Process questions matching safely
     for (let i = 0; i < submissions.length; i++) {
       const item = submissions[i];
 
@@ -1758,25 +1783,33 @@ exports.submitExam = async (req, res) => {
         candidateId,
         regNo,
         questionId,
-        subject,
-        examYear,
         orderId,
         submittedAnswer,
       } = item;
 
-      if (
-        !candidateId ||
-        !regNo ||
-        !questionId ||
-        !subject ||
-        !examYear ||
-        orderId === undefined ||
-        !submittedAnswer
-      ) {
+      // Handle cases where a student skips a question ('unanswered')
+      if (!candidateId || !regNo || !questionId || orderId === undefined) {
         return res.status(400).json({
           success: false,
-          message: `All fields are required for item at index ${i}`,
+          message: `All core parameters are required for item at index ${i}`,
         });
+      }
+
+      // Fallback evaluation for skipped items
+      if (!submittedAnswer || submittedAnswer === "unanswered" || submittedAnswer === "missed_exam_timeout") {
+        results.push({
+          candidateId,
+          regNo,
+          questionId,
+          subject,
+          examYear,
+          orderId,
+          submittedAnswer: submittedAnswer || "No Answer",
+          correctAnswer: "N/A",
+          isCorrect: false,
+          scoreAwarded: 0,
+        });
+        continue;
       }
 
       const question = await Question.findById(questionId);
@@ -1784,29 +1817,22 @@ exports.submitExam = async (req, res) => {
       if (!question) {
         return res.status(404).json({
           success: false,
-          message: `Question not found for item at index ${i}`,
+          message: `Question record not found for item at index ${i}`,
         });
       }
 
-      // Extra safety checks so people don't submit nonsense
-      if (question.subject.toLowerCase() !== subject.trim().toLowerCase()) {
+      // Structural safety string checks
+      if (question.subject.toLowerCase() !== item.subject.trim().toLowerCase()) {
         return res.status(400).json({
           success: false,
-          message: `Subject mismatch for item at index ${i}`,
+          message: `Subject mismatch layout error for item at index ${i}`,
         });
       }
 
-      if (question.examYear !== examYear.trim()) {
+      if (question.examYear !== item.examYear.trim()) {
         return res.status(400).json({
           success: false,
-          message: `Exam year mismatch for item at index ${i}`,
-        });
-      }
-
-      if (question.orderId !== orderId) {
-        return res.status(400).json({
-          success: false,
-          message: `Order ID mismatch for item at index ${i}`,
+          message: `Exam year mismatch layout error for item at index ${i}`,
         });
       }
 
@@ -1831,32 +1857,26 @@ exports.submitExam = async (req, res) => {
       });
     }
 
-    const firstSubmission = submissions[0];
-
-    res.status(200).json({
+    // 3. Return the payload cleanly inside the try-scope
+    return res.status(200).json({
       success: true,
-      message: "Exam submitted successfully",
+      message: "Exam processed and submitted successfully",
       data: {
         candidateId: firstSubmission.candidateId,
         regNo: firstSubmission.regNo,
-        subject: firstSubmission.subject,
-        examYear: firstSubmission.examYear,
+        subject,
+        examYear,
         totalQuestions: submissions.length,
         totalScore,
         results,
       },
     });
+
   } catch (err) {
-    res.status(500).json({
+    console.error("submitExam runtime failure:", err);
+    return res.status(500).json({
       success: false,
       error: err.message,
-    });
-  }
-  const exam = await Exam.findOne({ subject, examYear });
-  if (new Date() > new Date(exam.endTime)) {
-    return res.status(403).json({
-      success: false,
-      message: "Submission rejected: Exam time has expired.",
     });
   }
 };
