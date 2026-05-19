@@ -924,7 +924,7 @@ exports.editSubject = async (req, res) => {
 };
 exports.getSubjectList = async (req, res) => {
   try {
-    let { PageNo, PageSize, Tenant, Name } = req.query;
+    let { PageNo, PageSize, ExamYear, Subject: subjectQuery } = req.query;
 
     PageNo = parseInt(PageNo, 10) || 1;
     PageSize = parseInt(PageSize, 10) || 10;
