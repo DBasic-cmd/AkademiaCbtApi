@@ -1444,7 +1444,7 @@ exports.getQuestionList = async (req, res) => {
       filter.examYear = ExamYear.trim();
     }
 
-    // Tutor restriction
+    // Tutor restriction logic block
     if (req.user?.role === "Tutor") {
       const tutor = await User.findById(req.user.id || req.user._id);
 
@@ -1458,6 +1458,7 @@ exports.getQuestionList = async (req, res) => {
       const assignedSubjectIds = Array.isArray(tutor.selectedSubjects)
         ? tutor.selectedSubjects.filter(Boolean)
         : [];
+        
       if (!assignedSubjectIds.length) {
         return res.status(403).json({
           success: false,
@@ -1489,18 +1490,26 @@ exports.getQuestionList = async (req, res) => {
         ? { $regex: `^${Subject.trim()}$`, $options: "i" }
         : { $in: allowedSubjectNames };
     } else {
-      // Admin/default filtering
+      // Admin/default dynamic matching filter fallback layout
       if (Subject) {
         filter.subject = { $regex: Subject.trim(), $options: "i" };
       }
     }
 
+    // Optimization: If your Admin component gathers data to group them globally,
+    // your page calculation limits might crop out elements unexpectedly.
+    // Let's remove limits ONLY if PageSize parameter is explicitly set to a bypass indicator like -1:
+    const isPaginationDisabled = parseInt(req.query.PageSize, 10) === -1;
+
     const totalRecords = await Question.countDocuments(filter);
 
-    const questions = await Question.find(filter)
-      .sort({ createdAt: -1 })
-      .skip((PageNo - 1) * PageSize)
-      .limit(PageSize);
+    let queryExecution = Question.find(filter).sort({ createdAt: -1 });
+
+    if (!isPaginationDisabled) {
+      queryExecution = queryExecution.skip((PageNo - 1) * PageSize).limit(PageSize);
+    }
+
+    const questions = await queryExecution;
 
     return res.status(200).json({
       success: true,
@@ -1508,18 +1517,19 @@ exports.getQuestionList = async (req, res) => {
       data: questions,
       pagination: {
         pageNo: PageNo,
-        pageSize: PageSize,
+        pageSize: isPaginationDisabled ? totalRecords : PageSize,
         totalRecords,
-        totalPages: Math.ceil(totalRecords / PageSize),
+        totalPages: isPaginationDisabled ? 1 : Math.ceil(totalRecords / PageSize),
       },
     });
   } catch (err) {
+    // FIX: Moved error logger statement context INSIDE the catch scope safely!
+    console.error("getQuestionList error:", err);
     return res.status(500).json({
       success: false,
       error: err.message,
     });
   }
-  console.error("getQuestionList error:", err);
 };
 exports.viewBulkQuestion = async (req, res) => {
   try {
