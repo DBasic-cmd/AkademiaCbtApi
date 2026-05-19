@@ -924,7 +924,8 @@ exports.editSubject = async (req, res) => {
 };
 exports.getSubjectList = async (req, res) => {
   try {
-    let { PageNo, PageSize, ExamYear, Subject: subjectQuery } = req.query;
+    // Defensively rename destructuring keys to prevent variable shadowing collisions
+    let { PageNo, PageSize, Tenant: tenantQuery, Name: nameQuery } = req.query;
 
     PageNo = parseInt(PageNo, 10) || 1;
     PageSize = parseInt(PageSize, 10) || 10;
@@ -938,14 +939,15 @@ exports.getSubjectList = async (req, res) => {
 
     const filter = {};
 
-    if (Tenant) {
-      filter.tenant = Tenant.trim();
+    if (tenantQuery) {
+      filter.tenant = tenantQuery.trim();
     }
 
-    if (Name) {
-      filter.name = { $regex: Name.trim(), $options: "i" };
+    if (nameQuery) {
+      filter.name = { $regex: nameQuery.trim(), $options: "i" };
     }
 
+    // This cleanly safely executes now because 'Subject' points entirely to your compiled Mongoose schema!
     const totalRecords = await Subject.countDocuments(filter);
 
     const subjects = await Subject.find(filter)
@@ -953,7 +955,7 @@ exports.getSubjectList = async (req, res) => {
       .skip((PageNo - 1) * PageSize)
       .limit(PageSize);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Subjects fetched successfully",
       data: subjects,
@@ -965,7 +967,8 @@ exports.getSubjectList = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({
+    console.error("getSubjectList error context:", err);
+    return res.status(500).json({
       success: false,
       error: err.message,
     });
