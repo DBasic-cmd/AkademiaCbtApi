@@ -976,17 +976,21 @@ exports.getSubjectList = async (req, res) => {
 };
 exports.fetchSubjects = async (req, res) => {
   try {
-    const subjects = await Subject.find()
+    // Force Node to look exactly at the required module to bypass any variable shadowing bugs
+    const SubjectModel = require("../models/Subject");
+
+    const subjects = await SubjectModel.find()
       .select("_id name shortCode tenant")
       .sort({ name: 1 });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Subjects fetched successfully",
       data: subjects,
     });
   } catch (err) {
-    res.status(500).json({
+    console.error("fetchSubjects runtime failure:", err);
+    return res.status(500).json({
       success: false,
       error: err.message,
     });
