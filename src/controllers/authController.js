@@ -1433,17 +1433,11 @@ exports.bulkQuestion = async (req, res) => {
 };
 exports.getQuestionList = async (req, res) => {
   try {
-    let { PageNo, PageSize, ExamYear, Subject } = req.query;
+    // 1. Rename 'Subject' to 'subjectQuery' to prevent shadowing the global Model variable!
+    let { PageNo, PageSize, ExamYear, Subject: subjectQuery } = req.query;
 
     PageNo = parseInt(PageNo, 10) || 1;
     PageSize = parseInt(PageSize, 10) || 10;
-
-    if (PageNo < 1 || PageSize < 1) {
-      return res.status(400).json({
-        success: false,
-        message: "PageNo and PageSize must be greater than 0",
-      });
-    }
 
     const filter = {};
 
@@ -1451,17 +1445,15 @@ exports.getQuestionList = async (req, res) => {
       filter.examYear = ExamYear.trim();
     }
 
-    // Tutor restriction logic block
+    // 2. TUTOR RESTRICTION GATEWAY
     if (req.user?.role === "Tutor") {
       const tutor = await User.findById(req.user.id || req.user._id);
 
       if (!tutor) {
-        return res.status(404).json({
-          success: false,
-          message: "Tutor not found",
-        });
+        return res.status(404).json({ success: false, message: "Tutor profile not found" });
       }
 
+      // Safeguard array values from selectedSubjects
       const assignedSubjectIds = Array.isArray(tutor.selectedSubjects)
         ? tutor.selectedSubjects.filter(Boolean)
         : [];
@@ -1469,48 +1461,43 @@ exports.getQuestionList = async (req, res) => {
       if (!assignedSubjectIds.length) {
         return res.status(403).json({
           success: false,
-          message: "You have not been assigned to any subject",
+          message: "You have not been assigned to any subjects yet.",
         });
       }
 
-      const assignedSubjects = await Subject.find({
+      // Explicitly pull the Subject model to guarantee context isolation
+      const SubjectModel = require("../models/Subject");
+      const assignedSubjects = await SubjectModel.find({
         _id: { $in: assignedSubjectIds },
       }).select("name");
 
       const allowedSubjectNames = assignedSubjects.map((s) => s.name);
 
-      if (!allowedSubjectNames.length) {
-        return res.status(403).json({
-          success: false,
-          message: "You have not been assigned to any subject",
-        });
+      // If the tutor filters by a specific subject, check if they own it
+      if (subjectQuery) {
+        const trimmedQuery = subjectQuery.trim();
+        if (!allowedSubjectNames.some(name => name.toLowerCase() === trimmedQuery.toLowerCase())) {
+          return res.status(403).json({
+            success: false,
+            message: "Access Denied: You are not assigned to view this subject.",
+          });
+        }
+        filter.subject = { $regex: `^${trimmedQuery}$`, $options: "i" };
+      } else {
+        // If no filter is applied, strictly return questions matching ANY of their assigned subjects
+        filter.subject = { $in: allowedSubjectNames };
       }
-
-      if (Subject && !allowedSubjectNames.includes(Subject.trim())) {
-        return res.status(403).json({
-          success: false,
-          message: "You are not assigned to this subject",
-        });
-      }
-
-      filter.subject = Subject
-        ? { $regex: `^${Subject.trim()}$`, $options: "i" }
-        : { $in: allowedSubjectNames };
     } else {
-      // Admin/default dynamic matching filter fallback layout
-      if (Subject) {
-        filter.subject = { $regex: Subject.trim(), $options: "i" };
+      // ADMIN PATHWAY (Can see everything or filter globally)
+      if (subjectQuery) {
+        filter.subject = { $regex: subjectQuery.trim(), $options: "i" };
       }
     }
 
-    // Optimization: If your Admin component gathers data to group them globally,
-    // your page calculation limits might crop out elements unexpectedly.
-    // Let's remove limits ONLY if PageSize parameter is explicitly set to a bypass indicator like -1:
-    const isPaginationDisabled = parseInt(req.query.PageSize, 10) === -1;
-
+    // Bypass server pagination if PageSize is explicitly configured to -1
+    const isPaginationDisabled = parseInt(PageSize, 10) === -1;
     const totalRecords = await Question.countDocuments(filter);
-
-    let queryExecution = Question.find(filter).sort({ createdAt: -1 });
+    let queryExecution = Question.find(filter).sort({ examYear: -1, createdAt: -1 });
 
     if (!isPaginationDisabled) {
       queryExecution = queryExecution.skip((PageNo - 1) * PageSize).limit(PageSize);
@@ -1520,7 +1507,7 @@ exports.getQuestionList = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Questions fetched successfully",
+      message: "Questions loaded successfully",
       data: questions,
       pagination: {
         pageNo: PageNo,
@@ -1530,12 +1517,8 @@ exports.getQuestionList = async (req, res) => {
       },
     });
   } catch (err) {
-    // FIX: Moved error logger statement context INSIDE the catch scope safely!
     console.error("getQuestionList error:", err);
-    return res.status(500).json({
-      success: false,
-      error: err.message,
-    });
+    return res.status(500).json({ success: false, error: err.message });
   }
 };
 exports.viewBulkQuestion = async (req, res) => {
