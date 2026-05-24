@@ -1611,64 +1611,88 @@ exports.getExamQuestions = async (req, res) => {
     const { RegNo, ChoiceSubject, ExamYear } = req.query;
     const now = new Date();
 
-    // 1. Find an active scheduled exam for this subject and year
-    const activeExam = await Exam.findOne({
-      subject: ChoiceSubject,
-      examYear: ExamYear,
-      startTime: { $lte: now }, // Exam has started
-      endTime: { $gte: now }, // Exam has not ended
+    // 1. Find the scheduled exam configuration matching the subject and year
+    const examSchedule = await Exam.findOne({
+      subject: { $regex: `^${ChoiceSubject.trim()}$`, $options: "i" },
+      examYear: ExamYear.trim()
     });
 
-    if (!activeExam) {
-      return res.status(403).json({
+    if (!examSchedule) {
+      return res.status(404).json({
         success: false,
-        message:
-          "This exam is not available at this time. Please check your schedule.",
+        message: "No exam has been scheduled for this subject and year combination."
       });
     }
 
-    // 2. Verify Candidate (Keep your existing RegNo and subject authorization logic here)
-    const candidate = await User.findOne({ regNo: RegNo });
-    if (!candidate)
-      return res.status(404).json({ message: "Candidate not found" });
+    // Rule A: Candidate cannot start an exam UNTIL the scheduled time and date
+    if (now < new Date(examSchedule.startTime)) {
+      return res.status(403).json({
+        success: false,
+        message: `This exam room is locked. You can only join starting from ${new Date(examSchedule.startTime).toLocaleString()}`
+      });
+    }
 
-    // 3. Fetch the questions (as you already did)
+    // Rule B: Can join after start time but CANNOT join after the end time window closes
+    if (now > new Date(examSchedule.endTime)) {
+      return res.status(403).json({
+        success: false,
+        message: "Access Denied: This exam session's scheduled time window has closed and expired."
+      });
+    }
+
+    // 2. Verify Candidate Authorization
+    const candidate = await User.findOne({ regNo: RegNo });
+    if (!candidate) {
+      return res.status(404).json({ success: false, message: "Candidate record not found." });
+    }
+
+    // 3. Fetch questions with answer data stripped for safety
     const questions = await Question.find({
       subject: ChoiceSubject,
-      examYear: ExamYear,
+      examYear: ExamYear
     }).select("-answer");
 
-    res.status(200).json({
+    // Calculate dynamic duration remaining if they joined late near the closing wall
+    const totalSessionSecondsLeft = Math.floor((new Date(examSchedule.endTime) - now) / 1000);
+    const standardDurationSeconds = (examSchedule.duration || 60) * 60;
+    
+    // Safety check: if they join late, their timer shouldn't exceed the absolute deadline wall
+    const tailoredDurationSeconds = Math.min(standardDurationSeconds, totalSessionSecondsLeft);
+
+    return res.status(200).json({
       success: true,
       examDetails: {
-        title: activeExam.title,
-        endTime: activeExam.endTime,
-        duration: activeExam.duration,
+        title: examSchedule.title,
+        endTime: examSchedule.endTime,
+        // Send down computed remaining duration dynamically
+        duration: Math.ceil(tailoredDurationSeconds / 60) 
       },
-      questions,
+      questions
     });
+
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    console.error("getExamQuestions entry verification failure:", err);
+    return res.status(500).json({ success: false, error: err.message });
   }
 };
 exports.scheduleExam = async (req, res) => {
   try {
     const { title, subject, examYear, startTime, endTime, duration } = req.body;
 
-    // 1. Validation: Future date check
-    if (new Date(startTime) <= new Date()) {
-      return res
-        .status(400)
-        .json({ message: "Start time must be in the future." });
+    if (new Date(startTime) >= new Date(endTime)) {
+      return res.status(400).json({ success: false, message: "End time must be greater than start time." });
     }
 
-    // 2. Ensure questions actually exist for this subject/year before scheduling
     const questionCount = await Question.countDocuments({ subject, examYear });
     if (questionCount === 0) {
       return res.status(404).json({
-        message: `No questions found for ${subject} (${examYear}). Add questions first.`,
+        success: false,
+        message: `No questions found for ${subject} (${examYear}). Please upload questions first.`
       });
     }
+
+    // Fallback assignment matching variable structures across req.user
+    const creatorId = req.user?.id || req.user?._id || null;
 
     const newExam = await Exam.create({
       title,
@@ -1677,22 +1701,32 @@ exports.scheduleExam = async (req, res) => {
       startTime,
       endTime,
       duration,
-      teacherId: req.user.id,
+      teacherId: creatorId
     });
 
-    res.status(201).json({ success: true, data: newExam });
+    return res.status(201).json({ success: true, data: newExam });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
-exports.getTeacherScheduledExams = async (req, res) => {
-  const now = new Date();
-  const scheduled = await Exam.find({
-    teacherId: req.user.id,
-    endTime: { $gt: now }, // Any exam that hasn't finished yet
-  }).sort({ startTime: 1 }); // Sort by soonest first
+exports.getScheduledExamsList = async (req, res) => {
+  try {
+    const userRole = req.user?.role;
+    let queryCondition = {};
 
-  res.json(scheduled);
+    // If it's a Tutor, isolate them to their own records. If Admin, leaves condition empty {} to view all.
+    if (userRole === "Tutor") {
+      queryCondition.teacherId = req.user.id || req.user._id;
+    } 
+
+    const exams = await Exam.find(queryCondition)
+      .populate("teacherId", "firstname surname email")
+      .sort({ startTime: 1 });
+
+    return res.status(200).json({ success: true, data: exams });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
 };
 exports.deleteQuestion = async (req, res) => {
   try {

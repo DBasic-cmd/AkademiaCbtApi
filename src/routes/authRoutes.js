@@ -25,6 +25,8 @@ const {
   deleteSubject,
   newQuestion,
   updateQuestion,
+  scheduleExam,
+  getScheduledExamsList,
   getCandidateList,
   getTutorList,
   bulkQuestion,
@@ -44,6 +46,7 @@ const {
 router.post("/new-admin", newAdmin);
 router.post("/login", login);
 router.get("/logout", logout);
+
 router.post("/edit-admin-user", authMiddleware, adminOnly, editAdminUser);
 router.post("/change-password", authMiddleware, changePassword);
 router.get("/get-admin-details-by-id", authMiddleware, adminOnly, getAdminDetailsById);
@@ -54,22 +57,28 @@ router.post("/new-candidate", authMiddleware, adminOnly, newCandidate);
 router.delete("/delete-user", authMiddleware, adminOnly, deleteUser);
 router.post("/edit-candidate-user", authMiddleware, adminOnly, editCandidateUser);
 router.get("/candidate-details-by-id", authMiddleware, getCandidateDetailsById);
+
 router.post("/add-subject", authMiddleware, adminOnly, addSubject);
 router.post("/edit-subject", authMiddleware, adminOnly, editSubject);
 router.get("/get-subject-list", authMiddleware, adminOnly, getSubjectList);
 router.get("/fetch-subjects", authMiddleware,fetchSubjects);
 router.delete("/delete-subject", authMiddleware, adminOnly, deleteSubject);
+
 router.post("/new-question", authMiddleware, tutorOnly, newQuestion);
 router.post("/update-question", authMiddleware, tutorOnly, updateQuestion);
+router.post("/schedule-exam", authMiddleware, tutorOnly, scheduleExam); 
+router.get("/scheduled-list", authMiddleware, getScheduledExamsList);
+router.get("/exam-questions", authMiddleware, getExamQuestions);
+
 router.get("/candidate-list", authMiddleware, adminOnly, getCandidateList);
 router.get("/tutor-list", authMiddleware, adminOnly, getTutorList);
 router.post("/bulk-question", authMiddleware, tutorOnly, bulkQuestion);
 router.get("/question-list", authMiddleware, getQuestionList);
 router.get("/view-bulk-question", viewBulkQuestion);
 router.get("/view-my-exam-profile", viewMyExamProfile);
-router.get("/exam-questions", getExamQuestions);
 router.post("/submit-exam", submitExam);
 router.delete("/delete-question", authMiddleware, tutorOnly, deleteQuestion);
+
 router.get("/admin-home", authMiddleware, adminOnly, adminHome);
 router.get("/tutor-home", authMiddleware, tutorOnly, tutorHome);
 router.get("/candidate-home", authMiddleware, candidateHome);
