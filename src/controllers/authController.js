@@ -1679,7 +1679,15 @@ exports.scheduleExam = async (req, res) => {
   try {
     const { title, subject, examYear, startTime, endTime, duration } = req.body;
 
-    if (new Date(startTime) >= new Date(endTime)) {
+    if (!title || !subject || !examYear || !startTime || !endTime || !duration) {
+      return res.status(400).json({ success: false, message: "All scheduling fields are required." });
+    }
+
+    // Convert string inputs explicitly into clear date instances
+    const parsedStart = new Date(startTime);
+    const parsedEnd = new Date(endTime);
+
+    if (parsedStart >= parsedEnd) {
       return res.status(400).json({ success: false, message: "End time must be greater than start time." });
     }
 
@@ -1691,15 +1699,15 @@ exports.scheduleExam = async (req, res) => {
       });
     }
 
-    // Fallback assignment matching variable structures across req.user
     const creatorId = req.user?.id || req.user?._id || null;
 
+    // Save directly using the raw string mapping inputs to preserve exactly what the user picked
     const newExam = await Exam.create({
       title,
       subject,
       examYear,
-      startTime,
-      endTime,
+      startTime: startTime, // Storing the ISO string directly avoids conversion drift
+      endTime: endTime,
       duration,
       teacherId: creatorId
     });
