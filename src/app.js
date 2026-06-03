@@ -3165,6 +3165,125 @@ const swaggerDocument = {
         },
       },
     },
+    "/api/ExamResult/my-result": {
+      get: {
+        tags: ["ExamResult"],
+        summary: "Get candidate exam results",
+        description: "Fetch a paginated list of exam results for a specific candidate",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "CandidateId",
+            in: "query",
+            required: true,
+            schema: { type: "string" },
+            description: "The ID of the candidate",
+          },
+          {
+            name: "PageNo",
+            in: "query",
+            required: false,
+            schema: { type: "integer", default: 1 },
+            description: "Page number for pagination",
+          },
+          {
+            name: "PageSize",
+            in: "query",
+            required: false,
+            schema: { type: "integer", default: 10 },
+            description: "Number of results per page",
+          },
+        ],
+        responses: {
+          200: {
+            description: "Results fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                    data: {
+                      type: "array",
+                      items: { type: "object" },
+                    },
+                    pagination: {
+                      type: "object",
+                      properties: {
+                        pageNo: { type: "integer" },
+                        pageSize: { type: "integer" },
+                        totalRecords: { type: "integer" },
+                        totalPages: { type: "integer" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: "CandidateId is required" },
+          401: { description: "Unauthorized" },
+          500: { description: "Server error" },
+        },
+      },
+    },
+    "/api/ExamResult/all-result-list": {
+      get: {
+        tags: ["ExamResult"],
+        summary: "Get all candidate exam results (Admin/Tutor only)",
+        description: "Fetch a paginated list of all exam results across the platform",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "PageNo",
+            in: "query",
+            required: false,
+            schema: { type: "integer", default: 1 },
+            description: "Page number for pagination",
+          },
+          {
+            name: "PageSize",
+            in: "query",
+            required: false,
+            schema: { type: "integer", default: 10 },
+            description: "Number of results per page",
+          },
+        ],
+        responses: {
+          200: {
+            description: "All results fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                    data: {
+                      type: "array",
+                      items: { type: "object" },
+                    },
+                    pagination: {
+                      type: "object",
+                      properties: {
+                        pageNo: { type: "integer" },
+                        pageSize: { type: "integer" },
+                        totalRecords: { type: "integer" },
+                        totalPages: { type: "integer" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: { description: "Unauthorized" },
+          403: { description: "Forbidden - Admins and Tutors only" },
+          500: { description: "Server error" },
+        },
+      },
+    },
   },
 };
 
@@ -3178,6 +3297,7 @@ app.use("/api/User", authRoutes); // Only if these methods are in the same file
 app.use("/api/Subject", authRoutes);
 app.use("/api/Question", authRoutes);
 app.use("/api/Home", authRoutes);
+app.use("/api/ExamResult", authRoutes);
 
 // Basic route to test
 app.get("/", (req, res) => {

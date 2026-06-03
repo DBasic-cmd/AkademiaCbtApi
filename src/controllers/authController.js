@@ -3,6 +3,7 @@ const Counter = require("../models/Counter");
 const Subject = require("../models/Subject");
 const Exam = require('../models/Exam');
 const Question = require("../models/Question");
+const Result = require("../models/Result");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -1889,7 +1890,18 @@ exports.submitExam = async (req, res) => {
       });
     }
 
-    // 3. Return the payload cleanly inside the try-scope
+    // 3. Save to database
+    await Result.create({
+      candidateId: firstSubmission.candidateId,
+      regNo: firstSubmission.regNo,
+      subject,
+      examYear,
+      totalQuestions: submissions.length,
+      totalScore,
+      results
+    });
+
+    // 4. Return the payload cleanly inside the try-scope
     return res.status(200).json({
       success: true,
       message: "Exam processed and submitted successfully",
@@ -2018,5 +2030,102 @@ exports.candidateHome = async (req, res) => {
       errors: [err.message],
       data: null,
     });
+  }
+};
+
+exports.getMyResults = async (req, res) => {
+  try {
+    let { PageNo, PageSize, CandidateId } = req.query;
+
+    if (!CandidateId) {
+      return res.status(400).json({
+        success: false,
+        message: "CandidateId is required"
+      });
+    }
+
+    PageNo = parseInt(PageNo, 10) || 1;
+    PageSize = parseInt(PageSize, 10) || 10;
+
+    const filter = { candidateId: CandidateId };
+
+    const totalRecords = await Result.countDocuments(filter);
+    const results = await Result.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((PageNo - 1) * PageSize)
+      .limit(PageSize);
+
+    return res.status(200).json({
+      success: true,
+      message: "Results fetched successfully",
+      data: results,
+      pagination: {
+        pageNo: PageNo,
+        pageSize: PageSize,
+        totalRecords,
+        totalPages: Math.ceil(totalRecords / PageSize),
+      }
+    });
+  } catch (err) {
+    console.error("getMyResults error:", err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+exports.getAllResultsList = async (req, res) => {
+  try {
+    const userRole = req.user?.role;
+    if (userRole !== "Admin" && userRole !== "Tutor") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Admins or Tutors only"
+      });
+    }
+
+    let { PageNo, PageSize } = req.query;
+    PageNo = parseInt(PageNo, 10) || 1;
+    PageSize = parseInt(PageSize, 10) || 10;
+
+    const filter = {};
+
+    if (userRole === "Tutor") {
+      const tutor = await User.findById(req.user.id || req.user._id);
+      if (tutor) {
+        const assignedSubjectIds = Array.isArray(tutor.selectedSubjects)
+          ? tutor.selectedSubjects.filter(Boolean)
+          : [];
+        
+        if (assignedSubjectIds.length > 0) {
+          const SubjectModel = require("../models/Subject");
+          const assignedSubjects = await SubjectModel.find({
+            _id: { $in: assignedSubjectIds },
+          }).select("name");
+          const allowedSubjectNames = assignedSubjects.map((s) => s.name);
+          filter.subject = { $in: allowedSubjectNames };
+        }
+      }
+    }
+
+    const totalRecords = await Result.countDocuments(filter);
+    const results = await Result.find(filter)
+      .populate("candidateId", "firstname surname email regNo")
+      .sort({ createdAt: -1 })
+      .skip((PageNo - 1) * PageSize)
+      .limit(PageSize);
+
+    return res.status(200).json({
+      success: true,
+      message: "All results fetched successfully",
+      data: results,
+      pagination: {
+        pageNo: PageNo,
+        pageSize: PageSize,
+        totalRecords,
+        totalPages: Math.ceil(totalRecords / PageSize),
+      }
+    });
+  } catch (err) {
+    console.error("getAllResultsList error:", err);
+    return res.status(500).json({ success: false, error: err.message });
   }
 };

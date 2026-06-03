@@ -38,7 +38,9 @@ const {
   submitExam,
   adminHome,
   tutorHome,
-  candidateHome
+  candidateHome,
+  getMyResults,
+  getAllResultsList
 
 } = require("../controllers/authController");
 
@@ -82,5 +84,8 @@ router.delete("/delete-question", authMiddleware, tutorOnly, deleteQuestion);
 router.get("/admin-home", authMiddleware, adminOnly, adminHome);
 router.get("/tutor-home", authMiddleware, tutorOnly, tutorHome);
 router.get("/candidate-home", authMiddleware, candidateHome);
+
+router.get("/my-result", authMiddleware, getMyResults);
+router.get("/all-result-list", authMiddleware, getAllResultsList);
 
 module.exports = router;
