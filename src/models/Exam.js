@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const examSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
+  subject: { type: String, required: true },
+  examYear: { type: String, required: true },
   teacherId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
