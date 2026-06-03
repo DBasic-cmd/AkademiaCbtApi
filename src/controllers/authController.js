@@ -1798,7 +1798,14 @@ exports.submitExam = async (req, res) => {
       examYear: examYear.trim(),
     });
 
-    if (exam && new Date() > new Date(exam.endTime)) {
+    if (!exam) {
+      return res.status(400).json({
+        success: false,
+        message: "Submission rejected: No active scheduled exam found for this subject and year.",
+      });
+    }
+
+    if (new Date() > new Date(exam.endTime)) {
       return res.status(403).json({
         success: false,
         message: "Submission rejected: The scheduled exam time window has expired.",
@@ -1893,6 +1900,7 @@ exports.submitExam = async (req, res) => {
     // 3. Save to database
     await Result.create({
       candidateId: firstSubmission.candidateId,
+      examId: exam._id,
       regNo: firstSubmission.regNo,
       subject,
       examYear,
@@ -2126,6 +2134,49 @@ exports.getAllResultsList = async (req, res) => {
     });
   } catch (err) {
     console.error("getAllResultsList error:", err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+exports.viewExamReport = async (req, res) => {
+  try {
+    const { BatchID } = req.query;
+
+    if (!BatchID) {
+      return res.status(400).json({
+        success: false,
+        message: "BatchID is required"
+      });
+    }
+
+    const candidateId = req.user?.id || req.user?._id;
+    if (!candidateId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized"
+      });
+    }
+
+    // Find the result for this candidate and this exam batch
+    const result = await Result.findOne({
+      candidateId: candidateId,
+      examId: BatchID
+    }).populate("candidateId", "firstname surname email regNo");
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: "No exam report found for this candidate in the specified batch."
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Exam report fetched successfully",
+      data: result
+    });
+  } catch (err) {
+    console.error("viewExamReport error:", err);
     return res.status(500).json({ success: false, error: err.message });
   }
 };

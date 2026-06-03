@@ -40,7 +40,8 @@ const {
   tutorHome,
   candidateHome,
   getMyResults,
-  getAllResultsList
+  getAllResultsList,
+  viewExamReport
 
 } = require("../controllers/authController");
 
@@ -87,5 +88,6 @@ router.get("/candidate-home", authMiddleware, candidateHome);
 
 router.get("/my-result", authMiddleware, getMyResults);
 router.get("/all-result-list", authMiddleware, getAllResultsList);
+router.get("/view-exam-report", authMiddleware, viewExamReport);
 
 module.exports = router;

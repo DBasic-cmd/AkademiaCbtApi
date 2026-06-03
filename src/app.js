@@ -3284,6 +3284,44 @@ const swaggerDocument = {
         },
       },
     },
+    "/api/ExamResult/view-exam-report": {
+      get: {
+        tags: ["ExamResult"],
+        summary: "Get single exam report for candidate",
+        description: "Fetch candidate's result breakdown for a specific exam batch",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "BatchID",
+            in: "query",
+            required: true,
+            schema: { type: "string" },
+            description: "The ID of the exam batch (Exam ID)",
+          },
+        ],
+        responses: {
+          200: {
+            description: "Exam report fetched successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" },
+                    data: { type: "object" },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: "BatchID is required" },
+          401: { description: "Unauthorized" },
+          404: { description: "Exam report not found" },
+          500: { description: "Server error" },
+        },
+      },
+    },
   },
 };
 

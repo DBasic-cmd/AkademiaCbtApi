@@ -10,6 +10,7 @@ const resultDetailSchema = new mongoose.Schema({
 
 const resultSchema = new mongoose.Schema({
   candidateId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  examId: { type: mongoose.Schema.Types.ObjectId, ref: 'Exam', required: true },
   regNo: { type: String, required: true },
   subject: { type: String, required: true },
   examYear: { type: String, required: true },
