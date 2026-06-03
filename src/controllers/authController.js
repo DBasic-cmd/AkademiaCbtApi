@@ -1648,8 +1648,8 @@ exports.getExamQuestions = async (req, res) => {
 
     // 3. Fetch questions with answer data stripped for safety
     const questions = await Question.find({
-      subject: ChoiceSubject,
-      examYear: ExamYear
+      subject: { $regex: `^${ChoiceSubject.trim()}$`, $options: "i" },
+      examYear: ExamYear.trim()
     }).select("-answer");
 
     // Calculate dynamic duration remaining if they joined late near the closing wall
