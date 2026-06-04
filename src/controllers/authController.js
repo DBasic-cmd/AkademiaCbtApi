@@ -1612,11 +1612,11 @@ exports.getExamQuestions = async (req, res) => {
     const { RegNo, ChoiceSubject, ExamYear } = req.query;
     const now = new Date();
 
-    // 1. Find the scheduled exam configuration matching the subject and year
+    // 1. Find the scheduled exam configuration matching the subject and year (latest first)
     const examSchedule = await Exam.findOne({
       subject: { $regex: `^${ChoiceSubject.trim()}$`, $options: "i" },
       examYear: ExamYear.trim()
-    });
+    }).sort({ createdAt: -1 });
 
     if (!examSchedule) {
       return res.status(404).json({
@@ -1792,11 +1792,11 @@ exports.submitExam = async (req, res) => {
       });
     }
 
-    // Check if the actual exam schedule exists and has expired
+    // Check if the actual exam schedule exists and has expired (latest first)
     const exam = await Exam.findOne({
       subject: { $regex: `^${subject.trim()}$`, $options: "i" },
       examYear: examYear.trim(),
-    });
+    }).sort({ createdAt: -1 });
 
     if (!exam) {
       return res.status(400).json({
