@@ -399,6 +399,16 @@ exports.newTutor = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(finalPassword, 12);
 
+    // Atomically find and increment the counter for tutor staff ID
+    const counter = await Counter.findOneAndUpdate(
+      { id: "tutorStaffId" },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+
+    const paddedSeq = String(counter.seq).padStart(3, "0");
+    const tutorStaffId = `STAFF${paddedSeq}`;
+
     const tutor = new User({
       userType: "Tutor",
       role: "Tutor",
@@ -415,6 +425,7 @@ exports.newTutor = async (req, res) => {
       passport,
       selectedSubjects,
       registrationIp: systemIp,
+      staffId: tutorStaffId,
     });
 
     await tutor.save();
@@ -423,6 +434,7 @@ exports.newTutor = async (req, res) => {
       success: true,
       message: "Tutor created successfully",
       userId: tutor._id,
+      staffId: tutorStaffId,
     });
   } catch (err) {
     res.status(500).json({
