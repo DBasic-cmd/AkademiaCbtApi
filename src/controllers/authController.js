@@ -2161,7 +2161,9 @@ exports.viewExamReport = async (req, res) => {
     const result = await Result.findOne({
       candidateId: candidateId,
       examId: BatchID
-    }).populate("candidateId", "firstname surname email regNo");
+    })
+    .populate("candidateId", "firstname surname email regNo")
+    .populate("results.questionId");
 
     if (!result) {
       return res.status(404).json({
@@ -2170,10 +2172,24 @@ exports.viewExamReport = async (req, res) => {
       });
     }
 
+    // Format response to match frontend expectations (array of subjects with questions)
+    const formattedResult = [{
+      subject: result.subject,
+      questions: result.results.map(r => ({
+        question: r.questionId?.ask || "Question not found",
+        option1: r.questionId?.option1 || "",
+        option2: r.questionId?.option2 || "",
+        option3: r.questionId?.option3 || "",
+        option4: r.questionId?.option4 || "",
+        correctAnswer: r.correctAnswer,
+        submittedAnswer: r.submittedAnswer
+      }))
+    }];
+
     return res.status(200).json({
       success: true,
       message: "Exam report fetched successfully",
-      data: result
+      data: formattedResult
     });
   } catch (err) {
     console.error("viewExamReport error:", err);
